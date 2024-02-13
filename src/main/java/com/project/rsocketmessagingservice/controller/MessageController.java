@@ -17,7 +17,6 @@ import reactor.core.publisher.Mono;
 public class MessageController {
     private final MessageService messageService;
 
-    // java -jar rsc-0.9.1.jar --request --route=publish-message-req-resp --data='{"messageType":"SIMPLE","summary":"Hello, World!","externalReferences":[{"type":"SIMPLE","value":"Hello, World!"}], "messageDetails":{"simple":"Hello, World!"}}' --debug tcp://localhost:7001
     @MessageMapping("publish-message-req-resp")
     public Mono<MessageBoundary> createMessage(
             @Payload NewMessageBoundary message) {
@@ -25,7 +24,6 @@ public class MessageController {
         return messageService.createMessage(message);
     }
 
-    // java -jar rsc-0.9.1.jar --stream --route=getAll-req-stream --debug tcp://localhost:7001
     @MessageMapping("getAll-req-stream")
     public Flux<MessageBoundary> getAllMessages() {
         log.debug("Invoking: getAll-req-stream");
