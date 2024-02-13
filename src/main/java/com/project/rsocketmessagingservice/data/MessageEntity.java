@@ -1,6 +1,5 @@
 package com.project.rsocketmessagingservice.data;
 
-import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +19,6 @@ public class MessageEntity {
     private String publishedTimestamp;
     private String messageType;
     private String summary;
-    private List<ExternalReferenceBoundary> externalReferences;
+    private List<String> externalReferences;
     private Map<String, Object> messageDetails;
 }

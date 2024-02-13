@@ -1,8 +1,8 @@
 package com.project.rsocketmessagingservice.boundary;
 
 import com.project.rsocketmessagingservice.data.MessageEntity;
+import com.project.rsocketmessagingservice.utils.ExternalRefConvertor;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -32,7 +32,7 @@ public class MessageBoundary {
         this.publishedTimestamp = entity.getPublishedTimestamp();
         this.messageType = entity.getMessageType();
         this.summary = entity.getSummary();
-        this.externalReferences = entity.getExternalReferences();
+        this.externalReferences = entity.getExternalReferences().stream().map(ExternalRefConvertor::convertToBoundary).toList();
         this.messageDetails = entity.getMessageDetails();
     }
 
@@ -42,7 +42,7 @@ public class MessageBoundary {
                 this.publishedTimestamp,
                 this.messageType,
                 this.summary,
-                this.externalReferences,
+                this.externalReferences.stream().map(ExternalRefConvertor::convertToEntity).toList(),
                 this.messageDetails
         );
     }

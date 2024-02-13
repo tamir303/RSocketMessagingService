@@ -1,5 +1,6 @@
 package com.project.rsocketmessagingservice.controller;
 
+import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.IdBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
@@ -11,8 +12,6 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.Collections;
 
 @RestController
 @RequestMapping(path = "/rsocket/messages")
@@ -59,7 +58,7 @@ public class ClientMessageController {
     @GetMapping(
             path = {"/byMessage/{ids}"},
             produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
-    public Flux<MessageBoundary> getByMessagePattern(
+    public Flux<MessageBoundary> getByMessageIds(
             @PathVariable("ids") String ids) {
 
         Flux<IdBoundary> idsFlux = Flux.fromArray(ids
@@ -69,6 +68,19 @@ public class ClientMessageController {
         return this.requester
                 .route("getMessagesByIds-channel")
                 .data(idsFlux)
+                .retrieveFlux(MessageBoundary.class)
+                .log();
+    }
+
+    @GetMapping(
+            path = {"/byMessage/externalRef"},
+            produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    public Flux<MessageBoundary> getByMessageExternalRef(
+            @RequestBody Flux<ExternalReferenceBoundary> refFlux) {
+
+        return this.requester
+                .route("getMessagesByExternalReferences-channel")
+                .data(refFlux)
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }

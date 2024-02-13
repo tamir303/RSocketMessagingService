@@ -1,5 +1,6 @@
 package com.project.rsocketmessagingservice.logic;
 
+import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.IdBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
@@ -11,4 +12,5 @@ public interface MessageService {
     Flux<MessageBoundary> getAll();
     Flux<MessageBoundary> getMessagesByIds(Flux<IdBoundary> ids);
     Mono<Void> deleteAll();
+    Flux<MessageBoundary> getMessagesByExternalReferences(Flux<ExternalReferenceBoundary> externalReferences);
 }

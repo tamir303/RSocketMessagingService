@@ -1,5 +1,6 @@
 package com.project.rsocketmessagingservice.controller;
 
+import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.IdBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
@@ -42,5 +43,12 @@ public class MessageController {
     public Mono<Void> deleteAll() {
         log.debug("Invoking: deleteAll-fire-and-forget");
         return messageService.deleteAll();
+    }
+
+    @MessageMapping("getMessagesByExternalReferences-channel")
+    public Flux<MessageBoundary> getMessagesByExternalReferences(
+            Flux<ExternalReferenceBoundary> externalReferences) {
+        log.debug("Invoking: getMessagesByExternalReferences-channel");
+        return messageService.getMessagesByExternalReferences(externalReferences);
     }
 }

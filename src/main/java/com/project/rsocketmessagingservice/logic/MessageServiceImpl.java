@@ -1,9 +1,11 @@
 package com.project.rsocketmessagingservice.logic;
 
+import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.IdBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
+import com.project.rsocketmessagingservice.utils.ExternalRefConvertor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,6 +52,15 @@ public class MessageServiceImpl implements MessageService {
     public Mono<Void> deleteAll() {
         return messageCrud
                 .deleteAll()
+                .log();
+    }
+
+    @Override
+    public Flux<MessageBoundary> getMessagesByExternalReferences(Flux<ExternalReferenceBoundary> externalReferences) {
+        return externalReferences
+                .map(ExternalRefConvertor::convertToEntity)
+                .flatMap(messageCrud::findAllByExternalReferencesContaining)
+                .map(MessageBoundary::new)
                 .log();
     }
 }
