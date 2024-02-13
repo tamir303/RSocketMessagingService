@@ -1,4 +1,7 @@
-package com.project.rsocketmessagingservice.data;
+package com.project.rsocketmessagingservice.dal;
 
-public class MessageCrud {
+import com.project.rsocketmessagingservice.data.MessageEntity;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+
+public interface MessageCrud extends ReactiveMongoRepository<MessageEntity, String> {
 }
