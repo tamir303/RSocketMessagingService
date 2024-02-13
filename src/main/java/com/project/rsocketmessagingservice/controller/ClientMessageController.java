@@ -74,6 +74,7 @@ public class ClientMessageController {
 
     @GetMapping(
             path = {"/byMessage/externalRef"},
+            consumes = {MediaType.TEXT_EVENT_STREAM_VALUE},
             produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<MessageBoundary> getByMessageExternalRef(
             @RequestBody Flux<ExternalReferenceBoundary> refFlux) {
