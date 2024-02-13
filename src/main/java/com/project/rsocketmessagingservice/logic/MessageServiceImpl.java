@@ -31,7 +31,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Flux<MessageBoundary> getAllMessages() {
+    public Flux<MessageBoundary> getAll() {
         return messageCrud
                 .findAll()
                 .map(MessageBoundary::new)
@@ -39,12 +39,17 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Flux<MessageBoundary> getAllMessagesByIds(Flux<IdBoundary> ids) {
-        return null;
+    public Flux<MessageBoundary> getMessagesByIds(Flux<IdBoundary> ids) {
+        return ids.flatMap(id -> messageCrud.findById(id.getMessageId()))
+                .map(MessageBoundary::new)
+                .log();
+
     }
 
     @Override
-    public Mono<Void> clearAllMessages() {
-        return null;
+    public Mono<Void> deleteAll() {
+        return messageCrud
+                .deleteAll()
+                .log();
     }
 }

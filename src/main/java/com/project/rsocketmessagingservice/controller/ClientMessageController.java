@@ -1,5 +1,6 @@
 package com.project.rsocketmessagingservice.controller;
 
+import com.project.rsocketmessagingservice.boundary.IdBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import jakarta.annotation.PostConstruct;
@@ -56,14 +57,19 @@ public class ClientMessageController {
     }
 
     @GetMapping(
-            path = {"/{id}"},
-            produces = {MediaType.APPLICATION_JSON_VALUE})
-    public Mono<MessageBoundary> getMessageById(
-            @PathVariable("id") String id) {
+            path = {"/byMessage/{ids}"},
+            produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    public Flux<MessageBoundary> getByMessagePattern(
+            @PathVariable("ids") String ids) {
+
+        Flux<IdBoundary> idsFlux = Flux.fromArray(ids
+                        .split(","))
+                        .map(IdBoundary::new);
+
         return this.requester
-                .route("get-one-message-req-resp")
-                .data(Collections.singletonMap("id", id))
-                .retrieveMono(MessageBoundary.class)
+                .route("getMessagesByIds-channel")
+                .data(idsFlux)
+                .retrieveFlux(MessageBoundary.class)
                 .log();
     }
 
@@ -79,7 +85,7 @@ public class ClientMessageController {
     @DeleteMapping
     public Mono<Void> cleanup() {
         return this.requester
-                .route("clear-messages-fnf")
+                .route("deleteAll-fire-and-forget")
                 .send()
                 .log();
     }

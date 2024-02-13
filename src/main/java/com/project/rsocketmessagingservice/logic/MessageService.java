@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 
 public interface MessageService {
     Mono<MessageBoundary> createMessage(NewMessageBoundary message);
-    Flux<MessageBoundary> getAllMessages();
-    Flux<MessageBoundary> getAllMessagesByIds(Flux<IdBoundary> ids);
-    Mono<Void> clearAllMessages();
+    Flux<MessageBoundary> getAll();
+    Flux<MessageBoundary> getMessagesByIds(Flux<IdBoundary> ids);
+    Mono<Void> deleteAll();
 }

@@ -1,5 +1,6 @@
 package com.project.rsocketmessagingservice.controller;
 
+import com.project.rsocketmessagingservice.boundary.IdBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import com.project.rsocketmessagingservice.logic.MessageService;
@@ -25,8 +26,21 @@ public class MessageController {
     }
 
     @MessageMapping("getAll-req-stream")
-    public Flux<MessageBoundary> getAllMessages() {
+    public Flux<MessageBoundary> getAll() {
         log.debug("Invoking: getAll-req-stream");
-        return messageService.getAllMessages();
+        return messageService.getAll();
+    }
+
+    @MessageMapping("getMessagesByIds-channel")
+    public Flux<MessageBoundary> getMessagesByIds(
+            Flux<IdBoundary> ids) {
+        log.debug("Invoking: getMessagesByIds-channel");
+        return messageService.getMessagesByIds(ids);
+    }
+
+    @MessageMapping("deleteAll-fire-and-forget")
+    public Mono<Void> deleteAll() {
+        log.debug("Invoking: deleteAll-fire-and-forget");
+        return messageService.deleteAll();
     }
 }
