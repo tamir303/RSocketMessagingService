@@ -24,8 +24,7 @@ public class MessageServiceImpl implements MessageService {
         messageBoundary.setMessageId(UUID.randomUUID().toString());
         messageBoundary.setPublishedTimestamp(LocalDateTime.now().toString());
 
-        return Mono.just(messageBoundary)
-                .map(MessageBoundary::toEntity)
+        return Mono.just(messageBoundary.toEntity())
                 .flatMap(messageCrud::save)
                 .map(MessageBoundary::new)
                 .log();
@@ -33,7 +32,10 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Flux<MessageBoundary> getAllMessages() {
-        return null;
+        return messageCrud
+                .findAll()
+                .map(MessageBoundary::new)
+                .log();
     }
 
     @Override
