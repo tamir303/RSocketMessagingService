@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -42,7 +43,7 @@ public class MessageBoundary {
                 this.publishedTimestamp,
                 this.messageType,
                 this.summary,
-                this.externalReferences.stream().map(ExternalRefConvertor::convertToEntity).toList(),
+                this.externalReferences.stream().map(ExternalRefConvertor::convertToEntity).collect(Collectors.toSet()),
                 this.messageDetails
         );
     }

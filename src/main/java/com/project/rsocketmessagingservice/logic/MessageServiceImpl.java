@@ -59,7 +59,7 @@ public class MessageServiceImpl implements MessageService {
     public Flux<MessageBoundary> getMessagesByExternalReferences(Flux<ExternalReferenceBoundary> externalReferences) {
         return externalReferences
                 .map(ExternalRefConvertor::convertToEntity)
-                .flatMap(messageCrud::findAllByExternalReferencesContaining)
+                .flatMap(messageCrud::findByExternalReferencesContaining)
                 .map(MessageBoundary::new)
                 .log();
     }

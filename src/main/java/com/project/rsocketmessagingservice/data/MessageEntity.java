@@ -6,8 +6,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Document(collection = "messages")
 @Data
@@ -19,6 +19,6 @@ public class MessageEntity {
     private String publishedTimestamp;
     private String messageType;
     private String summary;
-    private List<String> externalReferences;
+    private Set<String> externalReferences;
     private Map<String, Object> messageDetails;
 }

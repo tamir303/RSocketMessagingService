@@ -72,12 +72,14 @@ public class ClientMessageController {
                 .log();
     }
 
-    @GetMapping(
-            path = {"/byMessage/externalRef"},
-            consumes = {MediaType.TEXT_EVENT_STREAM_VALUE},
+    @PostMapping(
+            path = {"/externalRef"},
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<MessageBoundary> getByMessageExternalRef(
-            @RequestBody Flux<ExternalReferenceBoundary> refFlux) {
+            @RequestBody ExternalReferenceBoundary[] externalReferences) {
+
+        Flux<ExternalReferenceBoundary> refFlux = Flux.fromArray(externalReferences);
 
         return this.requester
                 .route("getMessagesByExternalReferences-channel")
