@@ -1,7 +1,8 @@
 package com.project.rsocketmessagingservice.logic;
 
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
-import com.project.rsocketmessagingservice.dal.WeatherCrud;
+import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherObjectBoundary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,11 +14,14 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 public class WeatherServiceImpl implements WeatherService {
-    private final WeatherCrud repository;
+    private final MessageService messageService;
 
     @Override
-    public Mono<MessageBoundary> attachNewWeatherMachineEvent(MessageBoundary data) {
-        return null;
+    public Mono<MessageBoundary> attachNewWeatherMachineEvent(WeatherObjectBoundary data) {
+
+        NewMessageBoundary newMessageBoundary = new NewMessageBoundary();
+        newMessageBoundary.setMessageDetails(data.toMap());
+        messageService.createMessage(newMessageBoundary);
     }
 
     @Override
