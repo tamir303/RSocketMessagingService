@@ -1,6 +1,6 @@
 package com.project.rsocketmessagingservice.utils;
 
-import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundaries.ExternalReferenceBoundary;
 
 public class ExternalRefConvertor {
     public static String convertToEntity(ExternalReferenceBoundary externalReference) {

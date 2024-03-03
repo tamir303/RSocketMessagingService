@@ -1,6 +1,6 @@
 package com.project.rsocketmessagingservice.logic;
 
-import com.project.rsocketmessagingservice.boundary.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

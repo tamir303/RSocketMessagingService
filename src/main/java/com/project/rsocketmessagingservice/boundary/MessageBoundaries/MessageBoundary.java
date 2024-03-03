@@ -1,4 +1,4 @@
-package com.project.rsocketmessagingservice.boundary;
+package com.project.rsocketmessagingservice.boundary.MessageBoundaries;
 
 import com.project.rsocketmessagingservice.data.MessageEntity;
 import com.project.rsocketmessagingservice.utils.ExternalRefConvertor;

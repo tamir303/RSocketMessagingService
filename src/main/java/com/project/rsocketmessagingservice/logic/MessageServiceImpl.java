@@ -1,9 +1,9 @@
 package com.project.rsocketmessagingservice.logic;
 
-import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
-import com.project.rsocketmessagingservice.boundary.IdBoundary;
-import com.project.rsocketmessagingservice.boundary.MessageBoundary;
-import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundaries.ExternalReferenceBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundaries.IdBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundaries.NewMessageBoundary;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.utils.ExternalRefConvertor;
 import lombok.RequiredArgsConstructor;

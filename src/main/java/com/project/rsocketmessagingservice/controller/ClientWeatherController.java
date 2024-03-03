@@ -1,16 +1,18 @@
 package com.project.rsocketmessagingservice.controller;
 
-import com.project.rsocketmessagingservice.boundary.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@Controller
+@RestController
+@RequestMapping(path = "/weather")
 public class ClientWeatherController {
-
     private final RSocketRequester requester;
 
     public ClientWeatherController(RSocketRequester.Builder requesterBuilder,
