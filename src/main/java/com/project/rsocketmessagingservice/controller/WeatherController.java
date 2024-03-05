@@ -37,9 +37,10 @@ public class WeatherController {
     }
 
     @MessageMapping("get-weather-forecast")
-    public Flux<MessageBoundary> getWeatherForecast(Mono<MessageBoundary> data) {
-        return weatherService.getWeatherForecast(data.block());
+    public Flux<MessageBoundary> getWeatherForecast(MessageBoundary data) {
+        return weatherService.getWeatherForecast(Mono.just(data).block());
     }
+
     @MessageMapping("get-weather-recommendations")
     public Mono<Void> getWeatherRecommendations(Mono<MessageBoundary> data) {
         return data.doOnNext(weatherService::getWeatherRecommendations).then();

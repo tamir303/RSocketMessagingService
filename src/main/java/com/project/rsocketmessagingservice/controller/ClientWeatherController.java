@@ -4,10 +4,10 @@ import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -40,52 +40,61 @@ public class ClientWeatherController {
                 .tcp(rsocketHost, rsocketPort);
     }
 
-    @MessageMapping("attach-new-weather-machine")
-    public Mono<MessageBoundary> attachNewWeatherMachineEvent(Mono<MessageBoundary> data) {
+    @PostMapping(
+            path = "/create",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<MessageBoundary> createWeatherMachine(@RequestBody MessageBoundary data) {
         return this.requester.route("attach-new-weather-machine")
-                .data(data)
+                .data(Mono.just(data))
                 .retrieveMono(MessageBoundary.class)
                 .log();
     }
-    @MessageMapping("remove-weather-machine")
-    public Mono<Void> removeWeatherMachineEvent(Mono<MessageBoundary> data) {
-        return this.requester.route("remove-weather-machine")
-                .data(data)
-                .send()
-                .log();
-    }
-    @MessageMapping("update-weather-machine")
-    public Mono<Void> updateWeatherMachineEvent(Mono<MessageBoundary> data) {
+
+//    @DeleteMapping("/remove/{id}")
+//    public Mono<Void> removeWeatherMachine(@PathVariable String id) {
+//        return this.requester.route("remove-weather-machine")
+//                .data(Mono.just(new MessageBoundary(id)))
+//                .send()
+//                .log();
+//    }
+
+    @PutMapping("/update")
+    public Mono<Void> updateWeatherMachine(@RequestBody MessageBoundary data) {
         return this.requester.route("update-weather-machine")
-                .data(data)
+                .data(Mono.just(data))
                 .send()
                 .log();
     }
-    @MessageMapping("get-all-weather-machines")
-    public Flux<MessageBoundary> getAllWeatherMachines(Mono<String> houseUUID) {
+
+    @GetMapping("/all")
+    public Flux<MessageBoundary> getAllWeatherMachines(@RequestParam String houseUUID) {
         return this.requester.route("get-all-weather-machines")
-                .data(houseUUID)
+                .data(Mono.just(houseUUID))
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }
-    @MessageMapping("get-weather-forecast")
-    public Flux<MessageBoundary> getWeatherForecast(Mono<MessageBoundary> data) {
+
+    @GetMapping("/forecast")
+    public Flux<MessageBoundary> getWeatherForecast(@RequestBody MessageBoundary data) {
         return this.requester.route("get-weather-forecast")
-                .data(data)
+                .data(Mono.just(data))
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }
-    @MessageMapping("get-weather-recommendations")
-    public Mono<Void> getWeatherRecommendations(Mono<MessageBoundary> data) {
+
+    @GetMapping("/recommendations")
+    public Mono<Void> getWeatherRecommendations(@RequestBody MessageBoundary data) {
         return this.requester.route("get-weather-recommendations")
-                .data(data)
+                .data(Mono.just(data))
                 .send()
                 .log();
     }
-    @MessageMapping("change-machine-state")
-    public Mono<Void> changeMachineState(Mono<MessageBoundary> data) {
+
+    @PutMapping("/state")
+    public Mono<Void> changeMachineState(@RequestBody MessageBoundary data) {
         return this.requester.route("change-machine-state")
-                .data(data)
+                .data(Mono.just(data))
                 .send()
                 .log();
     }
