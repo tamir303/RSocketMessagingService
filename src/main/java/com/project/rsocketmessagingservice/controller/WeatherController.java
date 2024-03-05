@@ -1,6 +1,6 @@
 package com.project.rsocketmessagingservice.controller;
 
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.logic.WeatherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
