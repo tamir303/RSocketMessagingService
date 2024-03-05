@@ -1,6 +1,7 @@
 package com.project.rsocketmessagingservice.controller;
 
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,23 +45,23 @@ public class ClientWeatherController {
             path = "/create",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<MessageBoundary> createWeatherMachine(@RequestBody MessageBoundary data) {
+    public Mono<MessageBoundary> createWeatherMachine(@RequestBody NewMessageBoundary data) {
         return this.requester.route("attach-new-weather-machine")
-                .data(Mono.just(data))
+                .data(data)
                 .retrieveMono(MessageBoundary.class)
                 .log();
     }
 
-//    @DeleteMapping("/remove/{id}")
-//    public Mono<Void> removeWeatherMachine(@PathVariable String id) {
-//        return this.requester.route("remove-weather-machine")
-//                .data(Mono.just(new MessageBoundary(id)))
-//                .send()
-//                .log();
-//    }
+    @DeleteMapping("/remove/{id}")
+    public Mono<Void> removeWeatherMachine(@RequestBody String machineUUID) {
+        return this.requester.route("remove-weather-machine")
+                .data(machineUUID)
+                .send()
+                .log();
+    }
 
     @PutMapping("/update")
-    public Mono<Void> updateWeatherMachine(@RequestBody MessageBoundary data) {
+    public Mono<Void> updateWeatherMachine(@RequestBody NewMessageBoundary data) {
         return this.requester.route("update-weather-machine")
                 .data(Mono.just(data))
                 .send()
@@ -68,15 +69,14 @@ public class ClientWeatherController {
     }
 
     @GetMapping("/all")
-    public Flux<MessageBoundary> getAllWeatherMachines(@RequestParam String houseUUID) {
+    public Flux<MessageBoundary> getAllWeatherMachines() {
         return this.requester.route("get-all-weather-machines")
-                .data(Mono.just(houseUUID))
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }
 
     @GetMapping("/forecast")
-    public Flux<MessageBoundary> getWeatherForecast(@RequestBody MessageBoundary data) {
+    public Flux<MessageBoundary> getWeatherForecast(@RequestBody NewMessageBoundary data) {
         return this.requester.route("get-weather-forecast")
                 .data(Mono.just(data))
                 .retrieveFlux(MessageBoundary.class)
@@ -84,7 +84,7 @@ public class ClientWeatherController {
     }
 
     @GetMapping("/recommendations")
-    public Mono<Void> getWeatherRecommendations(@RequestBody MessageBoundary data) {
+    public Mono<Void> getWeatherRecommendations(@RequestBody NewMessageBoundary data) {
         return this.requester.route("get-weather-recommendations")
                 .data(Mono.just(data))
                 .send()
@@ -92,7 +92,7 @@ public class ClientWeatherController {
     }
 
     @PutMapping("/state")
-    public Mono<Void> changeMachineState(@RequestBody MessageBoundary data) {
+    public Mono<Void> changeMachineState(@RequestBody NewMessageBoundary data) {
         return this.requester.route("change-machine-state")
                 .data(Mono.just(data))
                 .send()

@@ -20,8 +20,7 @@ public class MessageController {
     private final MessageService messageService;
 
     @MessageMapping("publish-message-req-resp")
-    public Mono<MessageBoundary> createMessage(
-            @Payload NewMessageBoundary message) {
+    public Mono<MessageBoundary> createMessage(@Payload NewMessageBoundary message) {
         log.debug("Invoking: publish-message-req-resp");
         return messageService.createMessage(message);
     }
