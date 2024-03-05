@@ -14,6 +14,10 @@ public class WeatherObjectBoundary {
     private Location location;
     private MachineIdentifierBoundary machine;
     private double temperature;
+    private double humidity;
+    private double windSpeed;
+    private double cloudCover;
+    private double soilTemperature;
 
     // Adding machine state (on/off)
     private boolean machineIsOn;
