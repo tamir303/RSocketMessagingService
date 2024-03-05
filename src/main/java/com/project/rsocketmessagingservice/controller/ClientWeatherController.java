@@ -1,24 +1,43 @@
 package com.project.rsocketmessagingservice.controller;
 
 import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping(path = "/weather")
+@RequestMapping(path = "/rsocket/weather")
 public class ClientWeatherController {
-    private final RSocketRequester requester;
+    private RSocketRequester requester;
+    private RSocketRequester.Builder requesterBuilder;
+    private String rsocketHost;
+    private int rsocketPort;
 
-    public ClientWeatherController(RSocketRequester.Builder requesterBuilder,
-                                   @Value("${demoapp.client.rsocket.host:127.0.0.1}") String rsocketHost,
-                                   @Value("${demoapp.client.rsocket.port:7000}") int rsocketPort) {
-        this.requester = requesterBuilder.tcp(rsocketHost, rsocketPort);
+    @Autowired
+    public void setRequesterBuilder(RSocketRequester.Builder requesterBuilder) {
+        this.requesterBuilder = requesterBuilder;
+    }
+
+    @Value("${demoapp.client.rsocket.host:127.0.0.1}")
+    public void setRsocketHost(String rsocketHost) {
+        this.rsocketHost = rsocketHost;
+    }
+
+    @Value("${demoapp.client.rsocket.port:7000}")
+    public void setRsocketPort(int rsocketPort) {
+        this.rsocketPort = rsocketPort;
+    }
+
+    @PostConstruct
+    public void init() {
+        this.requester = this.requesterBuilder
+                .tcp(rsocketHost, rsocketPort);
     }
 
     @MessageMapping("attach-new-weather-machine")
