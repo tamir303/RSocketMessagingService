@@ -1,7 +1,6 @@
 package com.project.rsocketmessagingservice.controller;
 
-<<<<<<< HEAD
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,20 +18,6 @@ public class ClientWeatherController {
     private RSocketRequester.Builder requesterBuilder;
     private String rsocketHost;
     private int rsocketPort;
-=======
-import com.project.rsocketmessagingservice.boundary.MessageBoundary;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.stereotype.Controller;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-@Controller
-public class ClientWeatherController {
-
-    private final RSocketRequester requester;
->>>>>>> parent of c9baa7e (fix)
 
     @Autowired
     public void setRequesterBuilder(RSocketRequester.Builder requesterBuilder) {
@@ -62,7 +47,6 @@ public class ClientWeatherController {
                 .retrieveMono(MessageBoundary.class)
                 .log();
     }
-
     @MessageMapping("remove-weather-machine")
     public Mono<Void> removeWeatherMachineEvent(Mono<MessageBoundary> data) {
         return this.requester.route("remove-weather-machine")
@@ -70,7 +54,6 @@ public class ClientWeatherController {
                 .send()
                 .log();
     }
-
     @MessageMapping("update-weather-machine")
     public Mono<Void> updateWeatherMachineEvent(Mono<MessageBoundary> data) {
         return this.requester.route("update-weather-machine")
@@ -78,7 +61,6 @@ public class ClientWeatherController {
                 .send()
                 .log();
     }
-
     @MessageMapping("get-all-weather-machines")
     public Flux<MessageBoundary> getAllWeatherMachines(Mono<String> houseUUID) {
         return this.requester.route("get-all-weather-machines")
@@ -86,7 +68,6 @@ public class ClientWeatherController {
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }
-
     @MessageMapping("get-weather-forecast")
     public Flux<MessageBoundary> getWeatherForecast(Mono<MessageBoundary> data) {
         return this.requester.route("get-weather-forecast")
@@ -94,7 +75,6 @@ public class ClientWeatherController {
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }
-
     @MessageMapping("get-weather-recommendations")
     public Mono<Void> getWeatherRecommendations(Mono<MessageBoundary> data) {
         return this.requester.route("get-weather-recommendations")
@@ -102,7 +82,6 @@ public class ClientWeatherController {
                 .send()
                 .log();
     }
-
     @MessageMapping("change-machine-state")
     public Mono<Void> changeMachineState(Mono<MessageBoundary> data) {
         return this.requester.route("change-machine-state")

@@ -17,11 +17,8 @@ public class WeatherServiceImpl implements WeatherService {
     private final MessageService messageService;
 
     @Override
-    public Mono<MessageBoundary> attachNewWeatherMachineEvent(WeatherObjectBoundary data) {
-
-        NewMessageBoundary newMessageBoundary = new NewMessageBoundary();
-        newMessageBoundary.setMessageDetails(data.toMap());
-        messageService.createMessage(newMessageBoundary);
+    public Mono<MessageBoundary> attachNewWeatherMachineEvent(MessageBoundary data) {
+        return null;
     }
 
     @Override
