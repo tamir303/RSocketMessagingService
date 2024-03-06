@@ -1,59 +1,52 @@
 package com.project.rsocketmessagingservice.logic;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
-import com.project.rsocketmessagingservice.boundary.WeatherObjectBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
+import com.project.rsocketmessagingservice.data.DeviceEntity;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
-
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class WeatherServiceImpl implements WeatherService {
     private final MessageCrud messageCrud;
+    private final MessageService messageService;
+    private ObjectMapper jackson;
 
-    // INPUT
-    /*
-    * {
-          "messageId": "5f05c7b5-5769-4a09-a2f0-c4ba0cbe3fbd",
-          "publishedTimestamp": "2024-03-05T23:32:49.562005800",
-          "messageType": "adding new machine for weather control system",
-          "summary": "New house has been registered to the weather control",
-          "externalReferences": [
-            {
-              "service": "string",
-              "externalServiceId": "string"
-            }
-          ],
-          "messageDetails": {
-            "Location": {
-              "Lat": 35.12478,
-              "Lng": 36.25741
-            },
-            "houseUUID": "123",
-            "machineUUID": "1234"
-          }
-        }
-    * */
+    @PostConstruct
+    public void init() {
+        this.jackson = new ObjectMapper();
+    }
+
     @Override
     public Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary data) {
-        MessageBoundary messageBoundary = new MessageBoundary(data);
-        messageBoundary.setMessageId(UUID.randomUUID().toString());
-        messageBoundary.setPublishedTimestamp(LocalDateTime.now().toString());
+        return
+            // Validate and convert message details to DeviceBoundary
+            DeviceBoundary device = validateAndGetDevice(data.getMessageDetails());
+            if (device == null) {
+                return Mono.error(new IllegalArgumentException("Invalid device details"));
+            }
 
-        return Mono.just(messageBoundary.toEntity())
-                .flatMap(messageCrud::save)
-                .map(MessageBoundary::new)
-                .log();
+            // Check device type and process accordingly
+            if (device.isWeatherDevice()) {
+                DeviceEntity entity = device.toEntity();
+                data.setMessageDetails(entity.toMap()); // Use entity directly
+                return messageService.createMessage(data);
+            }
+
+            // Return empty Mono if device is not a weather machine
+            else {
+                return Mono.empty();
+            }
     }
 
     @Override
@@ -90,5 +83,13 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     public Mono<Void> changeMachineState(MessageBoundary data) {
         return null;
+    }
+
+    private DeviceBoundary validateAndGetDevice(Object messageDetails) {
+        if (messageDetails instanceof DeviceBoundary) {
+            return (DeviceBoundary) messageDetails;
+        } else {
+            return null; // Or throw an exception if expected to be DeviceBoundary
+        }
     }
 }
