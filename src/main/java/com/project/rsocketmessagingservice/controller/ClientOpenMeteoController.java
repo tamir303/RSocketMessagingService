@@ -14,12 +14,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/openmeteo")
-public class OpenMeteoController {
+public class ClientOpenMeteoController {
 
     private final OpenMeteoExtAPI openMeteoService;
 
     @Autowired
-    public OpenMeteoController(OpenMeteoExtAPI openMeteoService) {
+    public ClientOpenMeteoController(OpenMeteoExtAPI openMeteoService) {
         this.openMeteoService = openMeteoService;
     }
 
