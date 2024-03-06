@@ -1,5 +1,6 @@
 package com.project.rsocketmessagingservice.logic;
 
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.Location;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,7 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
     private WebClient webClient;
 
     @Override
-    public Flux<Map<String, Object>> getWeeklyForecast(int days) {
+    public Flux<Map<String, Object>> getWeeklyForecast(int days , Location location) {
         if (days < 1 || days > 16) {
             return Flux.error(new IllegalArgumentException("Number of days must be between 1 and 16"));
         }
@@ -25,8 +26,8 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .queryParam("forecast_days", days)
-                        .queryParam("latitude",32.0809)
-                        .queryParam("longitude",34.7806)
+                        .queryParam("latitude",location.getLatitude())
+                        .queryParam("longitude",location.getLongitude())
                         .queryParam("daily","temperature_2m_max","temperature_2m_min","sunrise","sunset","daylight_duration","sunshine_duration","rain_sum","showers_sum","snowfall_sum","wind_speed_10m_max")
                         .build())
                 .retrieve()
@@ -66,11 +67,11 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
     }
 
     @Override
-    public Flux<Map<String, Object>> getDailyRecommendation() {
+    public Flux<Map<String, Object>> getDailyRecommendation(Location location) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .queryParam("latitude",32.0809)
-                        .queryParam("longitude",34.7806)
+                        .queryParam("latitude",location.getLatitude())
+                        .queryParam("longitude",location.getLongitude())
                         .queryParam("hourly","temperature_2m","relative_humidity_2m","rain","cloud_cover","wind_speed_10m","soil_temperature_0cm","is_day")
                         .queryParam("forecast_hours",24)
                         .build())
