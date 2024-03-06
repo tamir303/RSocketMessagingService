@@ -9,6 +9,7 @@ import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.data.DeviceEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,6 +25,7 @@ public class WeatherServiceImpl implements WeatherService {
     private final MessageCrud messageCrud;
     private final MessageService messageService;
     private final DeviceCrud deviceCrud;
+    private final OpenMeteoExtAPI openMeteoExtAPI;
 
     @Override
     public Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message) {
@@ -85,14 +87,17 @@ public class WeatherServiceImpl implements WeatherService {
              .externalReferences(List.of((new ExternalReferenceBoundary("WeatherService", deviceEntity.getId()))))
              .messageDetails(deviceEntity.toMap()).build()));
     }
-
+    //TODO: Need to decide on the forecast structure in response to the consumer
     @Override
     public Flux<MessageBoundary> getWeatherForecast(MessageBoundary message) {
+        //use here OpenMeteoExtAPI to get the forecast, do not forget to pass the location and the number of days, the API returns Flux of data structures by days you can pass them through or more beautify them
         return null;
     }
 
+    //TODO: Need to decide on the recommendations structure in response to the consumer
     @Override
     public Mono<MessageBoundary> getWeatherRecommendations() {
+        //use here OpenMeteoExtAPI to build the recommendation structure, do not forget to pass the location and the number of hours for the daily recommendation, the API returns Flux of data structures by hours analyze them and return Mono
         return null;
     }
 
