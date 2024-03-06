@@ -1,17 +1,21 @@
 package com.project.rsocketmessagingservice.logic;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
-import jakarta.annotation.PostConstruct;
+import com.project.rsocketmessagingservice.data.DeviceEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -55,9 +59,9 @@ public class WeatherServiceImpl implements WeatherService {
                 .flatMap(deviceBoundary -> {
                     if (deviceBoundary.isWeatherDevice()) {
                         return this.deviceCrud.existsById(deviceBoundary.getId())
-                                .flatMap(exists -> {
+                                .map(exists -> {
                                     if (!exists) {
-                                        return Mono.empty();
+                                        return Mono.error(new RuntimeException("Device not found"));
                                     } else {
                                         log.info("Updating weather machine event: {}", deviceBoundary);
                                         return this.deviceCrud.save(deviceBoundary.toEntity());
@@ -66,16 +70,20 @@ public class WeatherServiceImpl implements WeatherService {
                     } else {
                         return Mono.empty();
                     }
-                });
+                }).then();
     }
 
 
     @Override
     public Flux<MessageBoundary> getAllWeatherMachines() {
-        return messageCrud.
-                findAll().
-                map(MessageBoundary::new)
-                .log();
+        Flux<DeviceEntity> deviceEntities = this.deviceCrud.findAll();
+     return deviceEntities.flatMap(deviceEntity -> Mono.just(MessageBoundary.builder()
+             .messageId(UUID.randomUUID().toString())
+             .publishedTimestamp(LocalDateTime.now().toString())
+             .messageType("Get All Weather Machines")
+             .summary("Show Device " + deviceEntity.getId() + " Details")
+             .externalReferences(List.of((new ExternalReferenceBoundary("WeatherService", deviceEntity.getId()))))
+             .messageDetails(deviceEntity.toMap()).build()));
     }
 
     @Override

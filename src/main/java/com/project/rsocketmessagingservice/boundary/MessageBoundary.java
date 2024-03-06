@@ -3,6 +3,7 @@ package com.project.rsocketmessagingservice.boundary;
 import com.project.rsocketmessagingservice.data.MessageEntity;
 import com.project.rsocketmessagingservice.utils.ExternalRefConvertor;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
