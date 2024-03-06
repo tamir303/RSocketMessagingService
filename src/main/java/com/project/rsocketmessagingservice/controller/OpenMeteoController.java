@@ -1,6 +1,5 @@
 package com.project.rsocketmessagingservice.controller;
 
-import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.Location;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
 import com.project.rsocketmessagingservice.logic.OpenMeteoExtAPI;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +33,6 @@ public class OpenMeteoController {
     @GetMapping(path = "/daily-recommendation", produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<Map<String, Object>> getDailyRecommendation(@RequestParam double latitude,
                                                             @RequestParam double longitude) {
-        return openMeteoService.getDailyRecommendation(new LocationBoundary(latitude,longitude));
+        return openMeteoService.getDailyRecommendation(new LocationBoundary(latitude, longitude));
     }
 }

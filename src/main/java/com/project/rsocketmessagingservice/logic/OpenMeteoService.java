@@ -1,6 +1,5 @@
 package com.project.rsocketmessagingservice.logic;
 
-import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.Location;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
     private WebClient webClient;
 
     @Override
-    public Flux<Map<String, Object>> getWeeklyForecast(int days , LocationBoundary location) {
+    public Flux<Map<String, Object>> getWeeklyForecast(int days, LocationBoundary location) {
         if (days < 1 || days > 16) {
             return Flux.error(new IllegalArgumentException("Number of days must be between 1 and 16"));
         }
@@ -27,9 +27,9 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .queryParam("forecast_days", days)
-                        .queryParam("latitude",location.getLatitude())
-                        .queryParam("longitude",location.getLongitude())
-                        .queryParam("daily","temperature_2m_max","temperature_2m_min","sunrise","sunset","daylight_duration","sunshine_duration","rain_sum","showers_sum","snowfall_sum","wind_speed_10m_max")
+                        .queryParam("latitude", location.getLatitude())
+                        .queryParam("longitude", location.getLongitude())
+                        .queryParam("daily", "temperature_2m_max", "temperature_2m_min", "sunrise", "sunset", "daylight_duration", "sunshine_duration", "rain_sum", "showers_sum", "snowfall_sum", "wind_speed_10m_max")
                         .build())
                 .retrieve()
                 .bodyToMono(Map.class)
@@ -71,10 +71,10 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
     public Flux<Map<String, Object>> getDailyRecommendation(LocationBoundary location) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .queryParam("latitude",location.getLatitude())
-                        .queryParam("longitude",location.getLongitude())
-                        .queryParam("hourly","temperature_2m","relative_humidity_2m","rain","cloud_cover","wind_speed_10m","soil_temperature_0cm","is_day")
-                        .queryParam("forecast_hours",24)
+                        .queryParam("latitude", location.getLatitude())
+                        .queryParam("longitude", location.getLongitude())
+                        .queryParam("hourly", "temperature_2m", "relative_humidity_2m", "rain", "cloud_cover", "wind_speed_10m", "soil_temperature_0cm", "is_day")
+                        .queryParam("forecast_hours", 24)
                         .build())
                 .retrieve()
                 .bodyToMono(Map.class)
@@ -105,8 +105,9 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
                             });
                 });
     }
+
     @Value("${openmeteo.api.baseForecastUrl}")
-    public void setRemoteUrl (String remoteUrl) {
+    public void setRemoteUrl(String remoteUrl) {
         this.webClient = WebClient
                 .create(remoteUrl);
     }
