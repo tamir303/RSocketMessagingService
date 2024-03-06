@@ -96,11 +96,6 @@ public class WeatherServiceImpl implements WeatherService {
         return null;
     }
 
-    @Override
-    public Mono<Void> changeMachineState(MessageBoundary data) {
-        return null;
-    }
-
     private Mono<DeviceBoundary> validateAndGetDevice(Object messageDetails) {
         if (messageDetails instanceof DeviceBoundary) {
             return Mono.just((DeviceBoundary) messageDetails);

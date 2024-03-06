@@ -13,5 +13,4 @@ public interface WeatherService {
     Flux<MessageBoundary> getAllWeatherMachines();
     Flux<MessageBoundary> getWeatherForecast(String houseUUID, Integer days);
     Mono<MessageBoundary> getWeatherRecommendations(MessageBoundary data);
-    Mono<Void> changeMachineState(MessageBoundary data);
 }

@@ -49,10 +49,4 @@ public class WeatherController {
     public Mono<Void> getWeatherRecommendations(Mono<MessageBoundary> data) {
         return data.doOnNext(weatherService::getWeatherRecommendations).then();
     }
-
-    @MessageMapping("change-machine-state")
-    public Mono<Void> changeMachineState(Mono<MessageBoundary> data) {
-        return data.doOnNext(weatherService::changeMachineState).then();
-    }
-
 }
