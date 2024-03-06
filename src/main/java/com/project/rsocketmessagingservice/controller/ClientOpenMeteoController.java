@@ -14,12 +14,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/openmeteo")
-public class OpenMeteoController {
+public class ClientOpenMeteoController {
 
     private final OpenMeteoExtAPI openMeteoService;
 
     @Autowired
-    public OpenMeteoController(OpenMeteoExtAPI openMeteoService) {
+    public ClientOpenMeteoController(OpenMeteoExtAPI openMeteoService) {
         this.openMeteoService = openMeteoService;
     }
 
@@ -32,7 +32,8 @@ public class OpenMeteoController {
 
     @GetMapping(path = "/daily-recommendation", produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<Map<String, Object>> getDailyRecommendation(@RequestParam double latitude,
-                                                            @RequestParam double longitude) {
-        return openMeteoService.getDailyRecommendation(new LocationBoundary(latitude, longitude));
+                                                            @RequestParam double longitude,
+                                                            @RequestParam int hours) {
+        return openMeteoService.getDailyRecommendation(new LocationBoundary(latitude, longitude), hours);
     }
 }

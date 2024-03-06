@@ -2,20 +2,27 @@ package com.project.rsocketmessagingservice.utils.OpenMeteoAPI;
 
 public class OptionsConstants {
 
-    public static final String daily = "daily";
-    public static final String hourly = "hourly";
-    public static final String quarterHourIntervals = "minutely_15";
-    public static final String sunrise = "sunrise";
-    public static final String sunset = "sunset";
-    public static final String daylightDuration = "daylight_duration";
-    public static final String sunshineDuration = "sunshine_duration";
-    public static final String rainSum = "rain_sum";
-    public static final String showersSum = "showers_sum";
-    public static final String snowfallSum = "snowfall_sum";
-    public static final String windSpeed10metersAboveSurfaceMax = "wind_speed_10m_max";
-    public static final String temperatureUnit = "temperature_unit";
-    public static final String windSpeedUnit = "wind_speed_unit";
-    public static final String precipitationUnit = "precipitation_unit";
-    public static final String timeFormat = "timeformat";
-    public static final String forecastHours = "forecast_hours";
+    public static final String TEMPERATURE_2_METERS_ABOVE_SURFACE_OPT = "temperature_2m";
+    public static final String RELATIVE_HUMIDITY_2_METERS_ABOVE_SURFACE_OPT = "relative_humidity_2m";
+    public static final String RAIN_OPT = "rain";
+    public static final String CLOUD_COVER_OPT = "cloud_cover";
+    public static final String WIND_SPEED_10_METERS_ABOVE_SURFACE_OPT = "wind_speed_10m";
+    public static final String SOIL_TEMPERATURE_0_CENTIMETERS_ABOVE_SURFACE_OPT = "soil_temperature_0cm";
+    public static final String IS_DAY_OPT = "is_day";
+    public static final String TIME_OPT = "time";
+    public static final String DATE_OPT = "date";
+    public static final String TEMPERATURE_2_METERS_ABOVE_SURFACE_MAX_OPT = "temperature_2m_max";
+    public static final String TEMPERATURE_2_METERS_ABOVE_SURFACE_MIN_OPT = "temperature_2m_min";
+    public static final String SUNRISE_OPT = "sunrise";
+    public static final String SUNSET_OPT = "sunset";
+    public static final String DAYLIGHT_DURATION_OPT = "daylight_duration";
+    public static final String SUNSHINE_DURATION_OPT = "sunshine_duration";
+    public static final String RAIN_SUM_OPT = "rain_sum";
+    public static final String SHOWERS_SUM_OPT = "showers_sum";
+    public static final String SNOWFALL_SUM_OPT = "snowfall_sum";
+    public static final String WIND_SPEED_10_METERS_ABOVE_SURFACE_MAX_OPT = "wind_speed_10m_max";
+    public static int MAX_DAYS_OPT = 16;
+    public static int MIN_DAYS_OPT = 1;
+    public static int MAX_HOURS_OPT = 24;
+    public static int MIN_HOURS_OPT = 1;
 }

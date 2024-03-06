@@ -9,5 +9,5 @@ public interface OpenMeteoExtAPI {
 
     public Flux<Map<String, Object>> getWeeklyForecast(int days, LocationBoundary location);
 
-    public Flux<Map<String, Object>> getDailyRecommendation(LocationBoundary location);
+    public Flux<Map<String, Object>> getDailyRecommendation(LocationBoundary location, int hours);
 }
