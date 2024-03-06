@@ -43,13 +43,13 @@ public class ClientWeatherController {
 
     @PostMapping(
             path = "/create",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<MessageBoundary> createWeatherMachine(@RequestBody NewMessageBoundary data) {
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public Mono<MessageBoundary> createWeatherMachine(@RequestBody NewMessageBoundary message) {
         return this.requester.route("attach-new-weather-machine")
-                .data(data)
-                .retrieveMono(MessageBoundary.class)
-                .log();
+                    .data(message)
+                    .retrieveMono(MessageBoundary.class)
+                    .log();
     }
 
     @DeleteMapping("/remove/{id}")
