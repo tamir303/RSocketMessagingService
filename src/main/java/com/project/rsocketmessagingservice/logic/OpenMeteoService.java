@@ -1,6 +1,7 @@
 package com.project.rsocketmessagingservice.logic;
 
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.Location;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +19,7 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
     private WebClient webClient;
 
     @Override
-    public Flux<Map<String, Object>> getWeeklyForecast(int days , Location location) {
+    public Flux<Map<String, Object>> getWeeklyForecast(int days , LocationBoundary location) {
         if (days < 1 || days > 16) {
             return Flux.error(new IllegalArgumentException("Number of days must be between 1 and 16"));
         }
@@ -67,7 +68,7 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
     }
 
     @Override
-    public Flux<Map<String, Object>> getDailyRecommendation(Location location) {
+    public Flux<Map<String, Object>> getDailyRecommendation(LocationBoundary location) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .queryParam("latitude",location.getLatitude())
