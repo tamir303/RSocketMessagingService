@@ -46,6 +46,7 @@ public class ClientWeatherController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<MessageBoundary> createWeatherMachine(@RequestBody NewMessageBoundary data) {
+        System.err.println("start \n"+data);
         return this.requester.route("attach-new-weather-machine")
                 .data(data)
                 .retrieveMono(MessageBoundary.class)
