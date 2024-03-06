@@ -20,14 +20,14 @@ public class WeatherController {
     private final WeatherService weatherService;
 
     @MessageMapping("attach-new-weather-machine")
-    public Mono<MessageBoundary> attachNewWeatherMachineEvent( @Payload NewMessageBoundary data) {
+    public Mono<MessageBoundary> attachNewWeatherMachineEvent( @Payload NewMessageBoundary message) {
         log.debug("Invoking: attach-new-weather-machine");
-        return weatherService.attachNewWeatherMachineEvent(data);
+        return weatherService.attachNewWeatherMachineEvent(message);
     }
 
     @MessageMapping("remove-weather-machine")
-    public Mono<Void> removeWeatherMachineEvent( @Payload String machineUUID) {
-        return weatherService.removeWeatherMachineEvent(machineUUID);
+    public Mono<Void> removeWeatherMachineEvent( @Payload MessageBoundary message) {
+        return weatherService.removeWeatherMachineEvent(message);
     }
 
     @MessageMapping("update-weather-machine")

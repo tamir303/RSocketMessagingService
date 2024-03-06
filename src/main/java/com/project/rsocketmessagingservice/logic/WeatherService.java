@@ -7,9 +7,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface WeatherService {
-    Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary data);
-    Mono<Void> removeWeatherMachineEvent(String data);
-    Mono<Void> updateWeatherMachineEvent(MessageBoundary data);
+    Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message);
+    Mono<Void> removeWeatherMachineEvent(MessageBoundary message);
+    Mono<Void> updateWeatherMachineEvent(MessageBoundary message);
     Flux<MessageBoundary> getAllWeatherMachines();
     Flux<MessageBoundary> getWeatherForecast(String houseUUID, Integer days);
     Mono<MessageBoundary> getWeatherRecommendations(MessageBoundary data);
