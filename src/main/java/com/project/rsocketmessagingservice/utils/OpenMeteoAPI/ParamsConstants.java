@@ -1,4 +1,4 @@
-package com.project.rsocketmessagingservice.utils.OpenMateoAPI;
+package com.project.rsocketmessagingservice.utils.OpenMeteoAPI;
 
 public class ParamsConstants {
 
