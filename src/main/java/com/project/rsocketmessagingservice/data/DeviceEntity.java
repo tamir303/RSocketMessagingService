@@ -20,7 +20,7 @@ public class DeviceEntity {
     String registrationTimestamp;
     String lastUpdateTimestamp;
     Boolean isOn;
-    Object additionalAttributes;
+    Map<String, Object> additionalAttributes;
 
     public Map<String, Object> toMap() {
         return Map.of(

@@ -19,7 +19,7 @@ public class DeviceBoundary {
     String location;
     Integer manufacturerPowerInWatts;
     StatusBoundary status;
-    Object additionalAttributes;
+    Map<String, Object> additionalAttributes;
 
     public DeviceEntity toEntity() {
         return new DeviceEntity(
