@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping(path = "/openmeteo")
 public class OpenMeteoController {
@@ -22,12 +24,12 @@ public class OpenMeteoController {
     }
 
     @GetMapping(path = "/weekly-forecast/{days}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<Object> getWeeklyForecast(@PathVariable int days) {
+    public Flux<Map<String, Object>> getWeeklyForecast(@PathVariable int days) {
         return openMeteoService.getWeeklyForecast(days);
     }
 
     @GetMapping(path = "/daily-recommendation", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<Object> getDailyRecommendation() {
+    public Flux<Map<String, Object>> getDailyRecommendation() {
         return openMeteoService.getDailyRecommendation();
     }
 }
