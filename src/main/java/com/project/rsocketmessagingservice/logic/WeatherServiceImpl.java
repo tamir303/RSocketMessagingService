@@ -29,35 +29,48 @@ public class WeatherServiceImpl implements WeatherService {
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
 
-    //// WORK
+    //// NEED TO TEST
     @Override
     public Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message) {
+
         return validateAndGetDevice(message.getMessageDetails())
                 .flatMap(device -> {
                     if (device.isWeatherDevice()) {
-                        log.info("Creating new weather machine event: {}", device); // Use String formatting for readability
-                            deviceCrud.save(device.toEntity());
-                            return messageService.createMessage(message);
-                        }
-                    else {
+                        log.info("Creating new weather machine event: {}", device);
+
+                        // Convert DeviceBoundary to DeviceEntity
+                        DeviceEntity deviceEntity = device.toEntity();
+
+                        // Save DeviceEntity to database and then proceed to create message
+                        return deviceCrud
+                                .save(deviceEntity)
+                                .flatMap(savedDeviceEntity -> messageService.createMessage(message));
+                    } else {
                         return Mono.empty();
                     }
                 })
-                .switchIfEmpty(Mono.empty());
+                .switchIfEmpty(Mono.empty())
+                .log();
     }
 
+    //// NEED TO TEST
     @Override
-    public Mono<Void> removeWeatherMachineEvent(MessageBoundary message) {
-        return validateAndGetDevice(message.getMessageDetails())
-                .flatMap(deviceDetailsBoundary -> {
-                    if (deviceDetailsBoundary.isWeatherDevice()) {
-                        log.info("Removing weather machine event: {}", deviceDetailsBoundary);
-                        this.deviceCrud.deleteById(deviceDetailsBoundary.toEntity().getId());
+    public Mono<Void> removeWeatherMachineEvent(String machineUUID) {
+        return deviceCrud
+                .findById(machineUUID)  // Find the device by UUID
+                .flatMap(deviceEntity -> {
+                    if (deviceEntity != null) {
+                        log.info("Removing weather machine with UUID: {}", machineUUID);
+                        return deviceCrud.deleteById(machineUUID);  // Delete the device
+                    } else {
+                        log.warn("Weather machine with UUID {} not found.", machineUUID);
+                        return Mono.empty();
                     }
-                    return Mono.empty();
-                });
+                })
+                .then();
     }
 
+    // TODO: NEED TO CHECK
     @Override
     public Mono<Void> updateWeatherMachineEvent(MessageBoundary data) {
         return validateAndGetDevice(data.getMessageDetails())
@@ -79,17 +92,16 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
 
+    //TODO: Need to decide if need this or get all from message boundary
     @Override
-    public Flux<MessageBoundary> getAllWeatherMachines() {
-        Flux<DeviceEntity> deviceEntities = this.deviceCrud.findAll();
-     return deviceEntities.flatMap(deviceEntity -> Mono.just(MessageBoundary.builder()
-             .messageId(UUID.randomUUID().toString())
-             .publishedTimestamp(LocalDateTime.now().toString())
-             .messageType("Get All Weather Machines")
-             .summary("Show Device " + deviceEntity.getId() + " Details")
-             .externalReferences(List.of((new ExternalReferenceBoundary("WeatherService", deviceEntity.getId()))))
-             .messageDetails(deviceEntity.toMap()).build()));
+    public Flux<DeviceBoundary> getAllWeatherMachines() {
+        return deviceCrud
+                .findAll()
+                .map(DeviceBoundary::new)
+                .log();
     }
+
+
     //TODO: Need to decide on the forecast structure in response to the consumer
     @Override
     public Flux<MessageBoundary> getWeatherForecast(MessageBoundary message) {

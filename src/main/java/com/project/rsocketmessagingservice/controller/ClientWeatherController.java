@@ -2,6 +2,7 @@ package com.project.rsocketmessagingservice.controller;
 
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,8 +53,8 @@ public class ClientWeatherController {
                     .log();
     }
 
-    @DeleteMapping("/remove/{id}")
-    public Mono<Void> removeWeatherMachine(@RequestBody String machineUUID) {
+    @DeleteMapping("/remove/{machineUUID}")
+    public Mono<Void> removeWeatherMachine(  @PathVariable("machineUUID") String machineUUID ) {
         return this.requester.route("remove-weather-machine")
                 .data(machineUUID)
                 .send()
@@ -69,9 +70,9 @@ public class ClientWeatherController {
     }
 
     @GetMapping("/all")
-    public Flux<MessageBoundary> getAllWeatherMachines() {
+    public Flux<DeviceBoundary> getAllWeatherMachines() {
         return this.requester.route("get-all-weather-machines")
-                .retrieveFlux(MessageBoundary.class)
+                .retrieveFlux(DeviceBoundary.class)
                 .log();
     }
 

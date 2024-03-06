@@ -55,8 +55,6 @@ public class MessageServiceImpl implements MessageService {
                 .log();
     }
 
-
-
     @Override
     public Flux<MessageBoundary> getMessagesByExternalReferences(Flux<ExternalReferenceBoundary> externalReferences) {
         return externalReferences

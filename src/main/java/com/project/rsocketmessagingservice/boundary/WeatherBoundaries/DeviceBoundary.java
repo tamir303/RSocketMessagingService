@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 @Data
 @AllArgsConstructor
@@ -21,6 +23,17 @@ public class DeviceBoundary {
     StatusBoundary status;
     Map<String, Object> additionalAttributes;
 
+    public DeviceBoundary(DeviceEntity deviceEntity) {
+        this.id = deviceEntity.getId();
+        this.type = deviceEntity.getType();
+        this.subType = deviceEntity.getSubType();
+        this.registrationTimestamp = deviceEntity.getRegistrationTimestamp();
+        this.lastUpdateTimestamp = deviceEntity.getLastUpdateTimestamp();
+        this.additionalAttributes = deviceEntity.getAdditionalAttributes();
+    }
+
+
+
     public DeviceEntity toEntity() {
         return new DeviceEntity(
                 this.id,
@@ -34,6 +47,21 @@ public class DeviceBoundary {
     }
 
     public boolean isWeatherDevice() {
-        return this.type.compareTo("Weather") == 0;
+        return "Weather".equals(this.type); // Check if the type is "Weather"
     }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new TreeMap<>();
+        map.put("id", this.id);
+        map.put("type", this.type);
+        map.put("subType", this.subType);
+        map.put("registrationTimestamp", this.registrationTimestamp);
+        map.put("lastUpdateTimestamp", this.lastUpdateTimestamp);
+        map.put("location", this.location);
+        map.put("manufacturerPowerInWatts", this.manufacturerPowerInWatts);
+        map.put("status", this.status);
+        map.put("additionalAttributes", this.additionalAttributes);
+        return map;
+    }
+
 }
