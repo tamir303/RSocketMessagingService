@@ -1,5 +1,11 @@
 package com.project.rsocketmessagingservice.boundary;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
 public class MachineIdentifierBoundary {
 
     private String houseUUID;
@@ -8,29 +14,5 @@ public class MachineIdentifierBoundary {
     public MachineIdentifierBoundary(String houseUUID, String machineUUID) {
         this.houseUUID = houseUUID;
         this.machineUUID = machineUUID;
-    }
-
-    public String getHouseUUID() {
-        return houseUUID;
-    }
-
-    public void setHouseUUID(String houseUUID) {
-        this.houseUUID = houseUUID;
-    }
-
-    public String getMachineUUID() {
-        return machineUUID;
-    }
-
-    public void setMachineUUID(String machineUUID) {
-        this.machineUUID = machineUUID;
-    }
-
-    @Override
-    public String toString() {
-        return "MachineIdentifierBoundary{" +
-                "houseUUID='" + houseUUID + '\'' +
-                ", machineUUID='" + machineUUID + '\'' +
-                '}';
     }
 }

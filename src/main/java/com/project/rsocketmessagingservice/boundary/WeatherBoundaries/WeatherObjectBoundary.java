@@ -1,5 +1,6 @@
 package com.project.rsocketmessagingservice.boundary.WeatherBoundaries;
 
+import com.project.rsocketmessagingservice.boundary.MachineIdentifierBoundary;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
