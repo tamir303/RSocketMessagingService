@@ -87,12 +87,12 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     @Override
-    public Flux<MessageBoundary> getWeatherForecast(String houseUUID, Integer days) {
+    public Flux<MessageBoundary> getWeatherForecast(MessageBoundary message) {
         return null;
     }
 
     @Override
-    public Mono<MessageBoundary> getWeatherRecommendations(MessageBoundary data) {
+    public Mono<MessageBoundary> getWeatherRecommendations() {
         return null;
     }
 

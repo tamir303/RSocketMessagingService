@@ -11,6 +11,6 @@ public interface WeatherService {
     Mono<Void> removeWeatherMachineEvent(MessageBoundary message);
     Mono<Void> updateWeatherMachineEvent(MessageBoundary message);
     Flux<MessageBoundary> getAllWeatherMachines();
-    Flux<MessageBoundary> getWeatherForecast(String houseUUID, Integer days);
-    Mono<MessageBoundary> getWeatherRecommendations(MessageBoundary data);
+    Flux<MessageBoundary> getWeatherForecast(MessageBoundary message);
+    Mono<MessageBoundary> getWeatherRecommendations();
 }
