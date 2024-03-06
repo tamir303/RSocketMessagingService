@@ -1,78 +1,100 @@
 package com.project.rsocketmessagingservice.controller;
 
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.rsocket.RSocketRequester;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping(path = "/weather")
+@RequestMapping(path = "/rsocket/weather")
 public class ClientWeatherController {
-    private final RSocketRequester requester;
+    private RSocketRequester requester;
+    private RSocketRequester.Builder requesterBuilder;
+    private String rsocketHost;
+    private int rsocketPort;
 
-    public ClientWeatherController(RSocketRequester.Builder requesterBuilder,
-                                   @Value("${demoapp.client.rsocket.host:127.0.0.1}") String rsocketHost,
-                                   @Value("${demoapp.client.rsocket.port:7000}") int rsocketPort) {
-        this.requester = requesterBuilder.tcp(rsocketHost, rsocketPort);
+    @Autowired
+    public void setRequesterBuilder(RSocketRequester.Builder requesterBuilder) {
+        this.requesterBuilder = requesterBuilder;
     }
 
-    @MessageMapping("attach-new-weather-machine")
-    public Mono<MessageBoundary> attachNewWeatherMachineEvent(Mono<MessageBoundary> data) {
+    @Value("${demoapp.client.rsocket.host:127.0.0.1}")
+    public void setRsocketHost(String rsocketHost) {
+        this.rsocketHost = rsocketHost;
+    }
+
+    @Value("${demoapp.client.rsocket.port:7000}")
+    public void setRsocketPort(int rsocketPort) {
+        this.rsocketPort = rsocketPort;
+    }
+
+    @PostConstruct
+    public void init() {
+        this.requester = this.requesterBuilder
+                .tcp(rsocketHost, rsocketPort);
+    }
+
+    @PostMapping(
+            path = "/create",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<MessageBoundary> createWeatherMachine(@RequestBody NewMessageBoundary data) {
         return this.requester.route("attach-new-weather-machine")
                 .data(data)
                 .retrieveMono(MessageBoundary.class)
                 .log();
     }
 
-    @MessageMapping("remove-weather-machine")
-    public Mono<Void> removeWeatherMachineEvent(Mono<MessageBoundary> data) {
+    @DeleteMapping("/remove/{id}")
+    public Mono<Void> removeWeatherMachine(@RequestBody String machineUUID) {
         return this.requester.route("remove-weather-machine")
-                .data(data)
+                .data(machineUUID)
                 .send()
                 .log();
     }
 
-    @MessageMapping("update-weather-machine")
-    public Mono<Void> updateWeatherMachineEvent(Mono<MessageBoundary> data) {
+    @PutMapping("/update")
+    public Mono<Void> updateWeatherMachine(@RequestBody NewMessageBoundary data) {
         return this.requester.route("update-weather-machine")
-                .data(data)
+                .data(Mono.just(data))
                 .send()
                 .log();
     }
 
-    @MessageMapping("get-all-weather-machines")
-    public Flux<MessageBoundary> getAllWeatherMachines(Mono<String> houseUUID) {
+    @GetMapping("/all")
+    public Flux<MessageBoundary> getAllWeatherMachines() {
         return this.requester.route("get-all-weather-machines")
-                .data(houseUUID)
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }
 
-    @MessageMapping("get-weather-forecast")
-    public Flux<MessageBoundary> getWeatherForecast(Mono<MessageBoundary> data) {
+    @GetMapping("/forecast")
+    public Flux<MessageBoundary> getWeatherForecast(@RequestBody NewMessageBoundary data) {
         return this.requester.route("get-weather-forecast")
-                .data(data)
+                .data(Mono.just(data))
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }
 
-    @MessageMapping("get-weather-recommendations")
-    public Mono<Void> getWeatherRecommendations(Mono<MessageBoundary> data) {
+    @GetMapping("/recommendations")
+    public Mono<Void> getWeatherRecommendations(@RequestBody NewMessageBoundary data) {
         return this.requester.route("get-weather-recommendations")
-                .data(data)
+                .data(Mono.just(data))
                 .send()
                 .log();
     }
 
-    @MessageMapping("change-machine-state")
-    public Mono<Void> changeMachineState(Mono<MessageBoundary> data) {
+    @PutMapping("/state")
+    public Mono<Void> changeMachineState(@RequestBody NewMessageBoundary data) {
         return this.requester.route("change-machine-state")
-                .data(data)
+                .data(Mono.just(data))
                 .send()
                 .log();
     }

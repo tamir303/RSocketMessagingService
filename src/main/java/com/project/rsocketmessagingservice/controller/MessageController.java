@@ -1,9 +1,9 @@
 package com.project.rsocketmessagingservice.controller;
 
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.ExternalReferenceBoundary;
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.IdBoundary;
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.NewMessageBoundary;
+import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
+import com.project.rsocketmessagingservice.boundary.IdBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import com.project.rsocketmessagingservice.logic.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +20,7 @@ public class MessageController {
     private final MessageService messageService;
 
     @MessageMapping("publish-message-req-resp")
-    public Mono<MessageBoundary> createMessage(
-            @Payload NewMessageBoundary message) {
+    public Mono<MessageBoundary> createMessage(@Payload NewMessageBoundary message) {
         log.debug("Invoking: publish-message-req-resp");
         return messageService.createMessage(message);
     }

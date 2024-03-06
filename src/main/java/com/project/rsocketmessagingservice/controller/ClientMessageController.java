@@ -1,9 +1,10 @@
 package com.project.rsocketmessagingservice.controller;
 
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.ExternalReferenceBoundary;
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.IdBoundary;
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.MessageBoundary;
-import com.project.rsocketmessagingservice.boundary.MessageBoundaries.NewMessageBoundary;
+
+import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
+import com.project.rsocketmessagingservice.boundary.IdBoundary;
+import com.project.rsocketmessagingservice.boundary.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,7 +64,7 @@ public class ClientMessageController {
 
         Flux<IdBoundary> idsFlux = Flux.fromArray(ids
                         .split(","))
-                        .map(IdBoundary::new);
+                .map(IdBoundary::new);
 
         return this.requester
                 .route("getMessagesByIds-channel")

@@ -1,4 +1,4 @@
-package com.project.rsocketmessagingservice.boundary.MessageBoundaries;
+package com.project.rsocketmessagingservice.boundary;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
