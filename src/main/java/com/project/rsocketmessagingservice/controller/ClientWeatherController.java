@@ -70,9 +70,9 @@ public class ClientWeatherController {
     }
 
     @GetMapping("/all")
-    public Flux<DeviceBoundary> getAllWeatherMachines() {
+    public Flux<MessageBoundary> getAllWeatherMachines() {
         return this.requester.route("get-all-weather-machines")
-                .retrieveFlux(DeviceBoundary.class)
+                .retrieveFlux(MessageBoundary.class)
                 .log();
     }
 

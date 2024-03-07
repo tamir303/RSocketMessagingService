@@ -16,6 +16,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -95,15 +96,25 @@ public class WeatherServiceImpl implements WeatherService {
     //TODO: Need to decide if need this or get all from message boundary
     @Override
     public Flux<MessageBoundary> getAllWeatherMachines() {
-        Flux<DeviceEntity> deviceEntities = this.deviceCrud.findAll();
-        return deviceEntities.flatMap(deviceEntity -> Mono.just(MessageBoundary.builder()
-                .messageId(UUID.randomUUID().toString())
-                .publishedTimestamp(LocalDateTime.now().toString())
-                .messageType("Get All Weather Machines")
-                .summary("Show Device " + deviceEntity.getId() + " Details")
-                .externalReferences(List.of((new ExternalReferenceBoundary("WeatherService", deviceEntity.getId()))))
-                .messageDetails(deviceEntity.toMap()).build()));
+        return this.deviceCrud.findAll()
+                .flatMap(deviceEntity -> {
+                    String messageId = UUID.randomUUID().toString();
+                    String timestamp = LocalDateTime.now().toString();
+                    String summary = "Show Device " + deviceEntity.getId() + " Details";
+                    ExternalReferenceBoundary externalReference = new ExternalReferenceBoundary("WeatherService", deviceEntity.getId());
+                    Map<String, Object> messageDetails = deviceEntity.toMap();
+
+                    return Mono.just(MessageBoundary.builder()
+                            .messageId(messageId)
+                            .publishedTimestamp(timestamp)
+                            .messageType("Get All Weather Machines")
+                            .summary(summary)
+                            .externalReferences(Collections.singletonList(externalReference))
+                            .messageDetails(messageDetails)
+                            .build());
+                });
     }
+
 
 
     //TODO: Need to decide on the forecast structure in response to the consumer
