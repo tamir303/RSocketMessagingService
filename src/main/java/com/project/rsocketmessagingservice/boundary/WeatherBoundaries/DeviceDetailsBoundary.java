@@ -21,4 +21,20 @@ public class DeviceDetailsBoundary {
     Integer manufacturerPowerInWatts;
     StatusBoundary status;
     Map<String, Object> additionalAttributes;
+
+    public DeviceEntity toEntity() {
+        return new DeviceEntity(
+                this.id,
+                this.type,
+                this.subType,
+                this.registrationTimestamp,
+                this.lastUpdateTimestamp,
+                this.status.isOn,
+                this.additionalAttributes
+        );
+    }
+
+    public boolean isWeatherDevice() {
+        return "Weather".equals(this.type); // Check if the type is "Weather"
+    }
 }
