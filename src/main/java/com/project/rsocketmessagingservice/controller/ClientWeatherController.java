@@ -76,10 +76,13 @@ public class ClientWeatherController {
                 .log();
     }
 
-    @GetMapping("/forecast")
-    public Flux<MessageBoundary> getWeatherForecast(@RequestBody NewMessageBoundary data) {
+    @PostMapping(
+            path = "/forecast",
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
+    public Flux<MessageBoundary> getWeatherForecast(@RequestBody MessageBoundary data) {
         return this.requester.route("get-weather-forecast")
-                .data(Mono.just(data))
+                .data(data)
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }
