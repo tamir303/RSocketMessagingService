@@ -31,12 +31,13 @@ public class WeatherController {
     }
 
     @MessageMapping("update-weather-machine")
-    public Mono<Void> updateWeatherMachineEvent(@Payload Mono<MessageBoundary> data) {
-        return data.doOnNext(weatherService::updateWeatherMachineEvent).then();
+    public Mono<Void> updateWeatherMachineEvent(@Payload MessageBoundary data) {
+        return weatherService.updateWeatherMachineEvent(data);
     }
 
     @MessageMapping("get-all-weather-machines")
     public Flux<MessageBoundary> getAllWeatherMachines() {
+        log.debug("Invoking: get-all-weather-machines");
         return weatherService.getAllWeatherMachines();
     }
 

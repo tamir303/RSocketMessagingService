@@ -62,12 +62,14 @@ public class ClientWeatherController {
     @PutMapping("/update")
     public Mono<Void> updateWeatherMachine(@RequestBody MessageBoundary data) {
         return this.requester.route("update-weather-machine")
-                .data(Mono.just(data))
+                .data(data)
                 .send()
                 .log();
     }
 
-    @GetMapping("/all")
+    @GetMapping(
+            path = {"/all"},
+            produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<MessageBoundary> getAllWeatherMachines() {
         return this.requester.route("get-all-weather-machines")
                 .retrieveFlux(MessageBoundary.class)
@@ -90,11 +92,4 @@ public class ClientWeatherController {
                 .log();
     }
 
-    @PutMapping("/state")
-    public Mono<Void> changeMachineState(@RequestBody NewMessageBoundary data) {
-        return this.requester.route("change-machine-state")
-                .data(Mono.just(data))
-                .send()
-                .log();
-    }
 }

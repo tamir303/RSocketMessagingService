@@ -37,7 +37,8 @@ public class MessageServiceImpl implements MessageService {
         return messageCrud
                 .findAll()
                 .map(MessageBoundary::new)
-                .log();
+                .log()
+                .doOnNext(System.err::println);
     }
 
     @Override
