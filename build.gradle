@@ -26,25 +26,32 @@ ext {
 }
 
 dependencies {
+    // Spring dependencies
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
     implementation 'org.springframework.boot:spring-boot-starter-rsocket'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0'
     implementation 'org.hibernate.validator:hibernate-validator:7.0.2.Final'
     implementation 'com.google.code.gson:gson:2.9.1' // Added Gson implementation
+
+    // Kafka dependencies
     implementation 'org.springframework.cloud:spring-cloud-stream'
     implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
     implementation 'org.springframework.kafka:spring-kafka'
 
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
 
+    // Development only dependencies
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
+    // Annotation processor
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Test dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
-//    testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
+    testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
     testImplementation 'org.springframework.kafka:spring-kafka-test'
 }
 
@@ -56,4 +63,8 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+exec {
+    commandLine 'docker-compose', 'up'
 }
