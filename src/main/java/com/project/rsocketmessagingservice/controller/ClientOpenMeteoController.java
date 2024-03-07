@@ -1,7 +1,7 @@
 package com.project.rsocketmessagingservice.controller;
 
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
-import com.project.rsocketmessagingservice.logic.OpenMeteoExtAPI;
+import com.project.rsocketmessagingservice.logic.openMeteo.OpenMeteoExtAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,6 +1,5 @@
 package com.project.rsocketmessagingservice.logic;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -12,8 +11,9 @@ import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoun
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
-import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.data.DeviceEntity;
+import com.project.rsocketmessagingservice.logic.clients.ComponentClient;
+import com.project.rsocketmessagingservice.logic.openMeteo.OpenMeteoExtAPI;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +24,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.Reader;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -37,14 +34,11 @@ public class WeatherServiceImpl implements WeatherService {
     private final MessageService messageService;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
-    @Value("${component-service.port}")
-    private String componentPort;
-    private WebClient client;
+    private final ComponentClient componentClient;
     private ObjectMapper jackson;
 
     @PostConstruct
     public void init() {
-        client = WebClient.create("http://localhost:" + componentPort);
         jackson = new ObjectMapper();
     }
 
@@ -52,22 +46,24 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     public Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message) {
         return validateAndGetDevice(message.getMessageDetails())
-                .flatMap(device -> {
-                    System.err.println(device);
-                    if (device.isWeatherDevice()) {
-                        log.info("Creating new weather machine event: {}", device);
+                .flatMap(weatherMachineDevice -> {
+                    if (weatherMachineDevice.isWeatherDevice()) {
+                        log.info("Processing new weather machine event for device: {}", weatherMachineDevice.getId());
+                        DeviceEntity deviceEntity = weatherMachineDevice.toEntity();
 
-                        // Convert DeviceBoundary to DeviceEntity
-                        DeviceEntity deviceEntity = device.toEntity();
-
-                        // Save DeviceEntity to database and then proceed to create message
-                        return deviceCrud
-                                .save(deviceEntity)
-                                .flatMap(savedDeviceEntity -> messageService.createMessage(message));
+                        // Save the device to the database and then create the message
+                        return deviceCrud.save(deviceEntity)
+                                .flatMap(savedDeviceEntity -> messageService.createMessage(message))
+                                .onErrorResume(error -> {
+                                    // Handle error during processing
+                                    log.error("Error processing weather machine message:", error);
+                                    return Mono.empty();
+                                });
                     } else {
                         return Mono.empty();
                     }
                 })
+                // Handle error during processing
                 .switchIfEmpty(Mono.empty())
                 .log();
     }
@@ -75,65 +71,61 @@ public class WeatherServiceImpl implements WeatherService {
     //// WORK
     @Override
     public Mono<Void> removeWeatherMachineEvent(MessageBoundary message) {
-        try {
-            DeviceBoundary deviceBoundary = jackson.convertValue(message.getMessageDetails(), DeviceBoundary.class);
-            if (deviceBoundary != null && deviceBoundary.getDevice() != null) {
-                String id = deviceBoundary.getDevice().getId();
-                return deviceCrud
-                        .findById(id)
-                        .flatMap(deviceEntity -> {
-                            if (deviceEntity != null) {
-                                log.info("Removing weather machine with UUID: {}", id);
-                                return deviceCrud.deleteById(id);
-                            } else {
-                                log.warn("Weather machine with UUID {} not found.", id);
-                                return Mono.empty();
-                            }
-                        })
-                        .then();
-            } else {
-                log.warn("Invalid message details for removing weather machine.");
-                return Mono.empty();
-            }
-        } catch (Exception e) {
-            log.error("Error removing weather machine: {}", e.getMessage());
-            return Mono.error(e);
-        }
+        return Mono.just(message)
+                .map(MessageBoundary::getMessageDetails)
+                .flatMap(messageDetails -> {
+                    try {
+                        DeviceBoundary deviceBoundary = jackson.convertValue(messageDetails, DeviceBoundary.class);
+
+                        // Extract the device ID from the message details
+                        return Optional.ofNullable(deviceBoundary)
+                                .map(DeviceBoundary::getDevice)
+                                .map(DeviceDetailsBoundary::getId)
+                                .map(Mono::just)
+                                .orElse(Mono.empty());
+                    } catch (Exception e) {
+                        log.error("Error converting message details: {}", e.getMessage());
+                        return Mono.empty();
+                    }
+                })
+                // Validate not null and remove the device
+                .filter(Objects::nonNull) // Filter out null IDs
+                .doOnNext(id -> log.info("Removing weather machine with UUID: {}", id))
+                .flatMap(deviceCrud::deleteById)
+                .then()
+                // Handle error during removal
+                .onErrorResume(error -> {
+                    log.error("Error removing weather machine event: {}", error.getMessage());
+                    return Mono.empty();
+                });
     }
 
     //// WORK
-    public Mono<Void> updateWeatherMachineEvent(MessageBoundary data) {
-        return validateAndGetDevice(data.getMessageDetails())
-                .flatMap(deviceDetailsBoundary -> {
-                    if (deviceDetailsBoundary.isWeatherDevice()) {
-                        return this.deviceCrud.existsById(deviceDetailsBoundary.getId())
+    public Mono<Void> updateWeatherMachineEvent(MessageBoundary message) {
+        return validateAndGetDevice(message.getMessageDetails())
+                .flatMap(weatherDeviceDetails -> {
+                    if (weatherDeviceDetails.isWeatherDevice()) {
+
+                        // Check if the device exists in the database
+                        return this.deviceCrud.existsById(weatherDeviceDetails.getId())
                                 .flatMap(exists -> {
                                     if (!exists) {
                                         return Mono.error(new RuntimeException("Device not found"));
                                     } else {
-                                        log.info("Updating weather machine event: {}", deviceDetailsBoundary);
+                                        log.info("Updating weather machine event with ID: {}", weatherDeviceDetails.getId());
 
-                                        // Save to the database and then make the PUT request
-                                        return this.deviceCrud.save(deviceDetailsBoundary.toEntity())
-                                                .then(
-                                                        client.put()
-                                                                .uri("/devices/{id}/status", deviceDetailsBoundary.getId())
-                                                                .body(BodyInserters.fromValue(data))
-                                                                .retrieve()
-                                                                .toBodilessEntity()
-                                                                .then()
-                                                );
+                                        // Save to database and conditionally send PUT request
+                                        return this.deviceCrud.save(weatherDeviceDetails.toEntity())
+                                                // Send Update request to Component Microservice
+                                                .then(componentClient.updateDevice(weatherDeviceDetails.getId(), message));
                                     }
                                 });
                     } else {
                         return Mono.empty();
                     }
                 })
-                .doOnError(error -> {
-                    // Log the error
-                    log.error("Error occurred during updateWeatherMachineEvent: {}", error.getMessage());
-                })
-                .onErrorResume(error -> Mono.empty()); // or handle the error as needed
+                .doOnError(error -> log.error("Error occurred: {}", error.getMessage()))
+                .then();
     }
 
     //// WORK
@@ -217,8 +209,6 @@ public class WeatherServiceImpl implements WeatherService {
         return Flux.empty();
     }
 
-
-
     //TODO: Need to decide on the recommendations structure in response to the consumer
     @Override
     public Mono<MessageBoundary> getWeatherRecommendations() {
@@ -239,7 +229,4 @@ public class WeatherServiceImpl implements WeatherService {
             return Mono.error(e);
         }
     }
-
-
-
 }

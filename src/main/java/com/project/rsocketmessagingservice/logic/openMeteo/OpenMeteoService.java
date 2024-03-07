@@ -1,4 +1,4 @@
-package com.project.rsocketmessagingservice.logic;
+package com.project.rsocketmessagingservice.logic.openMeteo;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-import java.io.Reader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

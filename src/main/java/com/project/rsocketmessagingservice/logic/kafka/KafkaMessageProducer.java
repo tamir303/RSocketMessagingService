@@ -1,4 +1,4 @@
-package com.project.rsocketmessagingservice.logic;
+package com.project.rsocketmessagingservice.logic.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;

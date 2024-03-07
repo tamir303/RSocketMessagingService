@@ -1,9 +1,10 @@
-package com.project.rsocketmessagingservice.logic;
+package com.project.rsocketmessagingservice.logic.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
+import com.project.rsocketmessagingservice.logic.WeatherService;
 import com.project.rsocketmessagingservice.utils.exceptions.DeviceIsNotWeatherTypeException;
 import com.project.rsocketmessagingservice.utils.exceptions.MessageWithoutDeviceException;
 import jakarta.annotation.PostConstruct;

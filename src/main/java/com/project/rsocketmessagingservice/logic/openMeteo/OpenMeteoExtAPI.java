@@ -1,4 +1,4 @@
-package com.project.rsocketmessagingservice.logic;
+package com.project.rsocketmessagingservice.logic.openMeteo;
 
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
 import reactor.core.publisher.Flux;
