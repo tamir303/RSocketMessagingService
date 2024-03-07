@@ -42,6 +42,7 @@ public class WeatherServiceImpl implements WeatherService {
 
         return validateAndGetDevice(message.getMessageDetails())
                 .flatMap(device -> {
+                    System.err.println(device);
                     if (device.isWeatherDevice()) {
                         log.info("Creating new weather machine event: {}", device);
 
@@ -142,7 +143,7 @@ public class WeatherServiceImpl implements WeatherService {
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
         try {
             // Extract the inner "device" map from the messageDetails
-            DeviceDetailsBoundary deviceDetailsMap = jakson.convertValue(messageDetails, DeviceDetailsBoundary.class);
+            DeviceDetailsBoundary deviceDetailsMap = jakson.convertValue(messageDetails.get("device"), DeviceDetailsBoundary.class);
             if (deviceDetailsMap == null) {
                 log.error("No 'device' object found in messageDetails.");
                 return Mono.empty();
