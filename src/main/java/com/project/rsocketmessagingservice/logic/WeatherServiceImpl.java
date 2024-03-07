@@ -36,7 +36,7 @@ public class WeatherServiceImpl implements WeatherService {
         jakson = new ObjectMapper();
     }
 
-    //// NEED TO TEST
+    //// WORK
     @Override
     public Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message) {
 
@@ -60,18 +60,19 @@ public class WeatherServiceImpl implements WeatherService {
                 .log();
     }
 
-    //// NEED TO TEST
+    //// WORK
     @Override
     public Mono<Void> removeWeatherMachineEvent(MessageBoundary message) {
-        String machineUUID = message.getMessageDetails().get("id").toString();
+        DeviceBoundary device = jakson.convertValue(message.getMessageDetails(), DeviceBoundary.class);
+        String id = device.getDevice().getId();
         return deviceCrud
-                .findById(machineUUID)  // Find the device by UUID
+                .findById(id)  // Find the device by UUID
                 .flatMap(deviceEntity -> {
                     if (deviceEntity != null) {
-                        log.info("Removing weather machine with UUID: {}", machineUUID);
-                        return deviceCrud.deleteById(machineUUID);  // Delete the device
+                        log.info("Removing weather machine with UUID: {}", id);
+                        return deviceCrud.deleteById(id);  // Delete the device
                     } else {
-                        log.warn("Weather machine with UUID {} not found.", machineUUID);
+                        log.warn("Weather machine with UUID {} not found.", id);
                         return Mono.empty();
                     }
                 })
@@ -100,7 +101,7 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
 
-    //TODO: Need to decide if need this or get all from message boundary
+    //WORK but returns list and not flux....
     @Override
     public Flux<MessageBoundary> getAllWeatherMachines() {
         return this.deviceCrud.findAll()
