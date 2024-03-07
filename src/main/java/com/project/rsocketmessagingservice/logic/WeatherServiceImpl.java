@@ -13,24 +13,25 @@ import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBo
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
 import com.project.rsocketmessagingservice.data.DeviceEntity;
 import com.project.rsocketmessagingservice.logic.clients.ComponentClient;
+import com.project.rsocketmessagingservice.logic.kafka.KafkaMessageProducer;
 import com.project.rsocketmessagingservice.logic.openMeteo.OpenMeteoExtAPI;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.project.rsocketmessagingservice.utils.Utils.createUpdateMessage;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class WeatherServiceImpl implements WeatherService {
+    private final KafkaMessageProducer kafka;
     private final MessageService messageService;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
@@ -50,7 +51,6 @@ public class WeatherServiceImpl implements WeatherService {
                     if (weatherMachineDevice.isWeatherDevice()) {
                         log.info("Processing new weather machine event for device: {}", weatherMachineDevice.getId());
                         DeviceEntity deviceEntity = weatherMachineDevice.toEntity();
-
                         // Save the device to the database and then create the message
                         return deviceCrud.save(deviceEntity)
                                 .flatMap(savedDeviceEntity -> messageService.createMessage(message))
@@ -76,7 +76,6 @@ public class WeatherServiceImpl implements WeatherService {
                 .flatMap(messageDetails -> {
                     try {
                         DeviceBoundary deviceBoundary = jackson.convertValue(messageDetails, DeviceBoundary.class);
-
                         // Extract the device ID from the message details
                         return Optional.ofNullable(deviceBoundary)
                                 .map(DeviceBoundary::getDevice)
@@ -105,7 +104,6 @@ public class WeatherServiceImpl implements WeatherService {
         return validateAndGetDevice(message.getMessageDetails())
                 .flatMap(weatherDeviceDetails -> {
                     if (weatherDeviceDetails.isWeatherDevice()) {
-
                         // Check if the device exists in the database
                         return this.deviceCrud.existsById(weatherDeviceDetails.getId())
                                 .flatMap(exists -> {
@@ -113,11 +111,12 @@ public class WeatherServiceImpl implements WeatherService {
                                         return Mono.error(new RuntimeException("Device not found"));
                                     } else {
                                         log.info("Updating weather machine event with ID: {}", weatherDeviceDetails.getId());
-
                                         // Save to database and conditionally send PUT request
                                         return this.deviceCrud.save(weatherDeviceDetails.toEntity())
                                                 // Send Update request to Component Microservice
-                                                .then(componentClient.updateDevice(weatherDeviceDetails.getId(), message));
+                                                .then(componentClient.updateDevice(weatherDeviceDetails.getId(), message))
+                                                // Send message to Kafka that the device was updated
+                                                .then(kafka.sendMessageToKafka(createUpdateMessage(message, weatherDeviceDetails.getId())));
                                     }
                                 });
                     } else {
