@@ -51,10 +51,10 @@ public class ClientWeatherController {
                     .log();
     }
 
-    @DeleteMapping("/remove/{machineUUID}")
-    public Mono<Void> removeWeatherMachine(  @PathVariable("machineUUID") String machineUUID ) {
+    @DeleteMapping("/remove")
+    public Mono<Void> removeWeatherMachine( @RequestBody MessageBoundary message ) {
         return this.requester.route("remove-weather-machine")
-                .data(machineUUID)
+                .data(message)
                 .send()
                 .log();
     }

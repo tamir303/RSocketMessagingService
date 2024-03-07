@@ -26,8 +26,8 @@ public class WeatherController {
     }
 
     @MessageMapping("remove-weather-machine")
-    public Mono<Void> removeWeatherMachineEvent( @Payload String machineUUID) {
-        return weatherService.removeWeatherMachineEvent(machineUUID);
+    public Mono<Void> removeWeatherMachineEvent( @Payload MessageBoundary message ) {
+        return weatherService.removeWeatherMachineEvent(message);
     }
 
     @MessageMapping("update-weather-machine")
