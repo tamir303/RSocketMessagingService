@@ -17,7 +17,6 @@ public class KafkaMessageProducer {
     private String targetTopic;
     private final StreamBridge kafka;
     private ObjectMapper jackson;
-    private final WeatherService weatherService;
 
     @PostConstruct
     public void init() {
