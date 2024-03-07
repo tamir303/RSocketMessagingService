@@ -25,15 +25,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class WeatherServiceImpl implements WeatherService {
-    private final MessageCrud messageCrud;
     private final MessageService messageService;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
-    private ObjectMapper jakson;
+    private ObjectMapper jackson;
 
     @PostConstruct
     public void init() {
-        jakson = new ObjectMapper();
+        jackson = new ObjectMapper();
     }
 
     //// WORK
@@ -64,20 +63,30 @@ public class WeatherServiceImpl implements WeatherService {
     //// WORK
     @Override
     public Mono<Void> removeWeatherMachineEvent(MessageBoundary message) {
-        DeviceBoundary device = jakson.convertValue(message.getMessageDetails(), DeviceBoundary.class);
-        String id = device.getDevice().getId();
-        return deviceCrud
-                .findById(id)  // Find the device by UUID
-                .flatMap(deviceEntity -> {
-                    if (deviceEntity != null) {
-                        log.info("Removing weather machine with UUID: {}", id);
-                        return deviceCrud.deleteById(id);  // Delete the device
-                    } else {
-                        log.warn("Weather machine with UUID {} not found.", id);
-                        return Mono.empty();
-                    }
-                })
-                .then();
+        try {
+            DeviceBoundary deviceBoundary = jackson.convertValue(message.getMessageDetails(), DeviceBoundary.class);
+            if (deviceBoundary != null && deviceBoundary.getDevice() != null) {
+                String id = deviceBoundary.getDevice().getId();
+                return deviceCrud
+                        .findById(id)
+                        .flatMap(deviceEntity -> {
+                            if (deviceEntity != null) {
+                                log.info("Removing weather machine with UUID: {}", id);
+                                return deviceCrud.deleteById(id);
+                            } else {
+                                log.warn("Weather machine with UUID {} not found.", id);
+                                return Mono.empty();
+                            }
+                        })
+                        .then();
+            } else {
+                log.warn("Invalid message details for removing weather machine.");
+                return Mono.empty();
+            }
+        } catch (Exception e) {
+            log.error("Error removing weather machine: {}", e.getMessage());
+            return Mono.error(e);
+        }
     }
 
     // TODO: NEED TO CHECK
@@ -87,19 +96,26 @@ public class WeatherServiceImpl implements WeatherService {
                 .flatMap(deviceDetailsBoundary -> {
                     if (deviceDetailsBoundary.isWeatherDevice()) {
                         return this.deviceCrud.existsById(deviceDetailsBoundary.getId())
-                                .map(exists -> {
+                                .flatMap(exists -> {
                                     if (!exists) {
                                         return Mono.error(new RuntimeException("Device not found"));
                                     } else {
                                         log.info("Updating weather machine event: {}", deviceDetailsBoundary);
-                                        return this.deviceCrud.save(deviceDetailsBoundary.toEntity());
+                                        return this.deviceCrud.save(deviceDetailsBoundary.toEntity())
+                                                .then();
                                     }
                                 });
                     } else {
                         return Mono.empty();
                     }
-                }).then();
+                })
+                .doOnError(error -> {
+                    // Log the error
+                    log.error("Error occurred during updateWeatherMachineEvent: {}", error.getMessage());
+                })
+                .onErrorResume(error -> Mono.empty()); // or handle the error as needed
     }
+
 
 
     //WORK but returns list and not flux....
@@ -142,20 +158,18 @@ public class WeatherServiceImpl implements WeatherService {
 
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
         try {
-            // Extract the inner "device" map from the messageDetails
-            DeviceDetailsBoundary deviceDetailsMap = jakson.convertValue(messageDetails.get("device"), DeviceDetailsBoundary.class);
-            if (deviceDetailsMap == null) {
+            DeviceDetailsBoundary deviceDetailsBoundary = jackson.convertValue(messageDetails.get("device"), DeviceDetailsBoundary.class);
+            if (deviceDetailsBoundary == null) {
                 log.error("No 'device' object found in messageDetails.");
                 return Mono.empty();
             }
-            // Return the DeviceBoundary object wrapped in a Mono
-            return Mono.just(deviceDetailsMap);
+            return Mono.just(deviceDetailsBoundary).log();
         } catch (Exception e) {
-            // If an exception occurs during conversion, log the error and return an empty Mono
-            log.error("Error converting 'device' object to DeviceBoundary: {}", e.getMessage());
-            return Mono.empty();
+            log.error("Error converting 'device' object to DeviceDetailsBoundary: {}", e.getMessage());
+            return Mono.error(e);
         }
     }
+
 
 
 }
