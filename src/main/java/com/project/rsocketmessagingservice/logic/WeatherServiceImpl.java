@@ -54,7 +54,8 @@ public class WeatherServiceImpl implements WeatherService {
 
     //// NEED TO TEST
     @Override
-    public Mono<Void> removeWeatherMachineEvent(String machineUUID) {
+    public Mono<Void> removeWeatherMachineEvent(MessageBoundary message) {
+        String machineUUID = message.getMessageDetails().get("id").toString();
         return deviceCrud
                 .findById(machineUUID)  // Find the device by UUID
                 .flatMap(deviceEntity -> {

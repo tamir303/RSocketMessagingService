@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface WeatherService {
     Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message);
-    Mono<Void> removeWeatherMachineEvent(String machineUUID);
+    Mono<Void> removeWeatherMachineEvent(MessageBoundary message );
     Mono<Void> updateWeatherMachineEvent(MessageBoundary message);
     Flux<MessageBoundary> getAllWeatherMachines();
     Flux<MessageBoundary> getWeatherForecast(MessageBoundary message);
