@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
-import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
@@ -141,16 +140,13 @@ public class WeatherServiceImpl implements WeatherService {
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
         try {
             // Extract the inner "device" map from the messageDetails
-            Map<String, Object> deviceMap = (Map<String, Object>) messageDetails.get("device");
-            if (deviceMap == null) {
+            DeviceDetailsBoundary deviceDetailsMap = jakson.convertValue(messageDetails, DeviceDetailsBoundary.class);
+            if (deviceDetailsMap == null) {
                 log.error("No 'device' object found in messageDetails.");
                 return Mono.empty();
             }
-
-            // Convert the "device" map to a DeviceBoundary object
-            DeviceDetailsBoundary deviceBoundary = jakson.convertValue(deviceMap, DeviceDetailsBoundary.class);
             // Return the DeviceBoundary object wrapped in a Mono
-            return Mono.just(deviceBoundary);
+            return Mono.just(deviceDetailsMap);
         } catch (Exception e) {
             // If an exception occurs during conversion, log the error and return an empty Mono
             log.error("Error converting 'device' object to DeviceBoundary: {}", e.getMessage());
