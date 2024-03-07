@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.data.DeviceEntity;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,12 @@ public class WeatherServiceImpl implements WeatherService {
     private final MessageService messageService;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
+    private ObjectMapper jakson;
+
+    @PostConstruct
+    public void init() {
+        jakson = new ObjectMapper();
+    }
 
     //// NEED TO TEST
     @Override
@@ -100,7 +108,7 @@ public class WeatherServiceImpl implements WeatherService {
                     String timestamp = LocalDateTime.now().toString();
                     String summary = "Show Device " + deviceEntity.getId() + " Details";
                     ExternalReferenceBoundary externalReference = new ExternalReferenceBoundary("WeatherService", deviceEntity.getId());
-                    Map<String, Object> messageDetails = deviceEntity.toMap();
+                    Map<String, Object> deviceDetailsMap = Collections.singletonMap("device", deviceEntity.toMap());
 
                     return Mono.just(MessageBoundary.builder()
                             .messageId(messageId)
@@ -108,7 +116,7 @@ public class WeatherServiceImpl implements WeatherService {
                             .messageType("Get All Weather Machines")
                             .summary(summary)
                             .externalReferences(Collections.singletonList(externalReference))
-                            .messageDetails(messageDetails)
+                            .messageDetails(deviceDetailsMap)
                             .build());
                 });
     }
@@ -139,8 +147,7 @@ public class WeatherServiceImpl implements WeatherService {
             }
 
             // Convert the "device" map to a DeviceBoundary object
-            ObjectMapper objectMapper = new ObjectMapper();
-            DeviceDetailsBoundary deviceBoundary = objectMapper.convertValue(deviceMap, DeviceDetailsBoundary.class);
+            DeviceDetailsBoundary deviceBoundary = jakson.convertValue(deviceMap, DeviceDetailsBoundary.class);
             // Return the DeviceBoundary object wrapped in a Mono
             return Mono.just(deviceBoundary);
         } catch (Exception e) {
