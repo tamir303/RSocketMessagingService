@@ -9,7 +9,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -27,12 +26,12 @@ public class WeatherController {
     }
 
     @MessageMapping("remove-weather-machine")
-    public Mono<Void> removeWeatherMachineEvent( @Payload MessageBoundary message) {
+    public Mono<Void> removeWeatherMachineEvent( @Payload MessageBoundary message ) {
         return weatherService.removeWeatherMachineEvent(message);
     }
 
     @MessageMapping("update-weather-machine")
-    public Mono<Void> updateWeatherMachineEvent(Mono<MessageBoundary> data) {
+    public Mono<Void> updateWeatherMachineEvent(@Payload Mono<MessageBoundary> data) {
         return data.doOnNext(weatherService::updateWeatherMachineEvent).then();
     }
 

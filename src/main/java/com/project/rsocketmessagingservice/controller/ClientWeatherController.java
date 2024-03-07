@@ -6,7 +6,6 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -43,25 +42,25 @@ public class ClientWeatherController {
 
     @PostMapping(
             path = "/create",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<MessageBoundary> createWeatherMachine(@RequestBody NewMessageBoundary data) {
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public Mono<MessageBoundary> createWeatherMachine(@RequestBody NewMessageBoundary message) {
         return this.requester.route("attach-new-weather-machine")
-                .data(data)
-                .retrieveMono(MessageBoundary.class)
-                .log();
+                    .data(message)
+                    .retrieveMono(MessageBoundary.class)
+                    .log();
     }
 
-    @DeleteMapping("/remove/{id}")
-    public Mono<Void> removeWeatherMachine(@RequestBody String machineUUID) {
+    @DeleteMapping("/remove")
+    public Mono<Void> removeWeatherMachine( @RequestBody MessageBoundary message ) {
         return this.requester.route("remove-weather-machine")
-                .data(machineUUID)
+                .data(message)
                 .send()
                 .log();
     }
 
     @PutMapping("/update")
-    public Mono<Void> updateWeatherMachine(@RequestBody NewMessageBoundary data) {
+    public Mono<Void> updateWeatherMachine(@RequestBody MessageBoundary data) {
         return this.requester.route("update-weather-machine")
                 .data(Mono.just(data))
                 .send()

@@ -1,12 +1,15 @@
 package com.project.rsocketmessagingservice.logic;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.data.DeviceEntity;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -25,47 +29,69 @@ public class WeatherServiceImpl implements WeatherService {
     private final MessageService messageService;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
+    private ObjectMapper jakson;
 
+    @PostConstruct
+    public void init() {
+        jakson = new ObjectMapper();
+    }
+
+    //// WORK
     @Override
     public Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message) {
+
         return validateAndGetDevice(message.getMessageDetails())
-                .flatMap(deviceBoundary -> {
-                    if (deviceBoundary.isWeatherDevice()) {
-                        log.info("Creating new weather machine event: {}", deviceBoundary); // Use String formatting for readability
-                            deviceCrud.save(deviceBoundary.toEntity());
-                            return messageService.createMessage(message);
-                        }
-                    else {
+                .flatMap(device -> {
+                    if (device.isWeatherDevice()) {
+                        log.info("Creating new weather machine event: {}", device);
+
+                        // Convert DeviceBoundary to DeviceEntity
+                        DeviceEntity deviceEntity = device.toEntity();
+
+                        // Save DeviceEntity to database and then proceed to create message
+                        return deviceCrud
+                                .save(deviceEntity)
+                                .flatMap(savedDeviceEntity -> messageService.createMessage(message));
+                    } else {
                         return Mono.empty();
                     }
                 })
-                .switchIfEmpty(Mono.empty());
+                .switchIfEmpty(Mono.empty())
+                .log();
     }
 
+    //// WORK
     @Override
     public Mono<Void> removeWeatherMachineEvent(MessageBoundary message) {
-        return validateAndGetDevice(message.getMessageDetails())
-                .flatMap(deviceBoundary -> {
-                    if (deviceBoundary.isWeatherDevice()) {
-                        log.info("Removing weather machine event: {}", deviceBoundary);
-                        this.deviceCrud.deleteById(deviceBoundary.toEntity().getId());
+        DeviceBoundary device = jakson.convertValue(message.getMessageDetails(), DeviceBoundary.class);
+        String id = device.getDevice().getId();
+        return deviceCrud
+                .findById(id)  // Find the device by UUID
+                .flatMap(deviceEntity -> {
+                    if (deviceEntity != null) {
+                        log.info("Removing weather machine with UUID: {}", id);
+                        return deviceCrud.deleteById(id);  // Delete the device
+                    } else {
+                        log.warn("Weather machine with UUID {} not found.", id);
+                        return Mono.empty();
                     }
-                    return Mono.empty();
-                });
+                })
+                .then();
     }
 
+    // TODO: NEED TO CHECK
     @Override
     public Mono<Void> updateWeatherMachineEvent(MessageBoundary data) {
         return validateAndGetDevice(data.getMessageDetails())
-                .flatMap(deviceBoundary -> {
-                    if (deviceBoundary.isWeatherDevice()) {
-                        return this.deviceCrud.existsById(deviceBoundary.getId())
+                .flatMap(deviceDetailsBoundary -> {
+                    if (deviceDetailsBoundary.isWeatherDevice()) {
+                        return this.deviceCrud.existsById(deviceDetailsBoundary.getId())
                                 .map(exists -> {
                                     if (!exists) {
                                         return Mono.error(new RuntimeException("Device not found"));
                                     } else {
-                                        log.info("Updating weather machine event: {}", deviceBoundary);
-                                        return this.deviceCrud.save(deviceBoundary.toEntity());
+                                        log.info("Updating weather machine event: {}", deviceDetailsBoundary);
+                                        return this.deviceCrud.save(deviceDetailsBoundary.toEntity());
                                     }
                                 });
                     } else {
@@ -75,17 +101,30 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
 
+    //WORK but returns list and not flux....
     @Override
     public Flux<MessageBoundary> getAllWeatherMachines() {
-        Flux<DeviceEntity> deviceEntities = this.deviceCrud.findAll();
-     return deviceEntities.flatMap(deviceEntity -> Mono.just(MessageBoundary.builder()
-             .messageId(UUID.randomUUID().toString())
-             .publishedTimestamp(LocalDateTime.now().toString())
-             .messageType("Get All Weather Machines")
-             .summary("Show Device " + deviceEntity.getId() + " Details")
-             .externalReferences(List.of((new ExternalReferenceBoundary("WeatherService", deviceEntity.getId()))))
-             .messageDetails(deviceEntity.toMap()).build()));
+        return this.deviceCrud.findAll()
+                .flatMap(deviceEntity -> {
+                    String messageId = UUID.randomUUID().toString();
+                    String timestamp = LocalDateTime.now().toString();
+                    String summary = "Show Device " + deviceEntity.getId() + " Details";
+                    ExternalReferenceBoundary externalReference = new ExternalReferenceBoundary("WeatherService", deviceEntity.getId());
+                    Map<String, Object> deviceDetailsMap = Collections.singletonMap("device", deviceEntity.toMap());
+
+                    return Mono.just(MessageBoundary.builder()
+                            .messageId(messageId)
+                            .publishedTimestamp(timestamp)
+                            .messageType("Get All Weather Machines")
+                            .summary(summary)
+                            .externalReferences(Collections.singletonList(externalReference))
+                            .messageDetails(deviceDetailsMap)
+                            .build());
+                });
     }
+
+
+
     //TODO: Need to decide on the forecast structure in response to the consumer
     @Override
     public Flux<MessageBoundary> getWeatherForecast(MessageBoundary message) {
@@ -100,11 +139,22 @@ public class WeatherServiceImpl implements WeatherService {
         return null;
     }
 
-    private Mono<DeviceBoundary> validateAndGetDevice(Object messageDetails) {
-        if (messageDetails instanceof DeviceBoundary) {
-            return Mono.just((DeviceBoundary) messageDetails);
-        } else {
+    private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
+        try {
+            // Extract the inner "device" map from the messageDetails
+            DeviceDetailsBoundary deviceDetailsMap = jakson.convertValue(messageDetails, DeviceDetailsBoundary.class);
+            if (deviceDetailsMap == null) {
+                log.error("No 'device' object found in messageDetails.");
+                return Mono.empty();
+            }
+            // Return the DeviceBoundary object wrapped in a Mono
+            return Mono.just(deviceDetailsMap);
+        } catch (Exception e) {
+            // If an exception occurs during conversion, log the error and return an empty Mono
+            log.error("Error converting 'device' object to DeviceBoundary: {}", e.getMessage());
             return Mono.empty();
         }
     }
+
+
 }
