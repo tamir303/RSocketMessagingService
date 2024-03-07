@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
-import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
-import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.StatusBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.data.DeviceEntity;
@@ -17,7 +16,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -131,7 +129,7 @@ public class WeatherServiceImpl implements WeatherService {
         return null;
     }
 
-    private Mono<DeviceBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
+    private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
         try {
             // Extract the inner "device" map from the messageDetails
             Map<String, Object> deviceMap = (Map<String, Object>) messageDetails.get("device");
@@ -142,7 +140,7 @@ public class WeatherServiceImpl implements WeatherService {
 
             // Convert the "device" map to a DeviceBoundary object
             ObjectMapper objectMapper = new ObjectMapper();
-            DeviceBoundary deviceBoundary = objectMapper.convertValue(deviceMap, DeviceBoundary.class);
+            DeviceDetailsBoundary deviceBoundary = objectMapper.convertValue(deviceMap, DeviceDetailsBoundary.class);
             // Return the DeviceBoundary object wrapped in a Mono
             return Mono.just(deviceBoundary);
         } catch (Exception e) {
