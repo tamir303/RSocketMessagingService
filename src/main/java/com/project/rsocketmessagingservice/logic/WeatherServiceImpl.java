@@ -12,7 +12,10 @@ import com.project.rsocketmessagingservice.data.DeviceEntity;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,10 +31,14 @@ public class WeatherServiceImpl implements WeatherService {
     private final MessageService messageService;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
+    @Value("${component-service.port}")
+    private String componentPort;
+    private WebClient client;
     private ObjectMapper jackson;
 
     @PostConstruct
     public void init() {
+        client = WebClient.create("http://localhost:" + componentPort);
         jackson = new ObjectMapper();
     }
 
@@ -90,7 +97,6 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     //// WORK
-    @Override
     public Mono<Void> updateWeatherMachineEvent(MessageBoundary data) {
         return validateAndGetDevice(data.getMessageDetails())
                 .flatMap(deviceDetailsBoundary -> {
@@ -101,8 +107,17 @@ public class WeatherServiceImpl implements WeatherService {
                                         return Mono.error(new RuntimeException("Device not found"));
                                     } else {
                                         log.info("Updating weather machine event: {}", deviceDetailsBoundary);
+
+                                        // Save to the database and then make the PUT request
                                         return this.deviceCrud.save(deviceDetailsBoundary.toEntity())
-                                                .then();
+                                                .then(
+                                                        client.put()
+                                                                .uri("/devices/{id}/status", deviceDetailsBoundary.getId())
+                                                                .body(BodyInserters.fromValue(data))
+                                                                .retrieve()
+                                                                .toBodilessEntity()
+                                                                .then()
+                                                );
                                     }
                                 });
                     } else {
