@@ -1,0 +1,74 @@
+package com.project.rsocketmessagingservice.logic;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.rsocketmessagingservice.boundary.MessageBoundary;
+import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
+import com.project.rsocketmessagingservice.utils.exceptions.DeviceIsNotWeatherTypeException;
+import com.project.rsocketmessagingservice.utils.exceptions.MessageWithoutDeviceException;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.function.Consumer;
+
+@Configuration
+@RequiredArgsConstructor
+@Slf4j
+public class KafkaMessageListener {
+
+    @Value("${target.topic.name:topic1}")
+    private String targetTopic;
+    private final StreamBridge kafka;
+    private ObjectMapper objectMapper;
+    private final WeatherService weatherService;
+
+    @PostConstruct
+    public void init() {
+        objectMapper = new ObjectMapper();
+    }
+
+    @Bean
+    public Consumer<String> demoMessageSink() {
+        return message -> {
+            try {
+                MessageBoundary receivedMessage = objectMapper.readValue(message, MessageBoundary.class);
+                validateMessage(receivedMessage);
+                processWeatherMessage(receivedMessage);
+            } catch (Exception e) {
+                log.error("Error processing message: {}", e.getMessage());
+            }
+        };
+    }
+
+    private void validateMessage(MessageBoundary message) {
+        if (message.getMessageDetails() == null || !message.getMessageDetails().containsKey("device") || message.getMessageDetails().get("device") == null) {
+            throw new MessageWithoutDeviceException("Message is missing device details.");
+        }
+    }
+
+    private void processWeatherMessage(MessageBoundary message) {
+        DeviceDetailsBoundary deviceDetails = objectMapper.convertValue(message.getMessageDetails().get("device"), DeviceDetailsBoundary.class);
+        if (deviceDetails.isWeatherDevice()) {
+            NewMessageBoundary newMessage = buildWeatherMessage(message);
+            weatherService.attachNewWeatherMachineEvent(newMessage);
+            log.info("Processed weather message: {}", newMessage);
+        } else {
+            throw new DeviceIsNotWeatherTypeException("Device is not a weather device.");
+        }
+    }
+
+    private NewMessageBoundary buildWeatherMessage(MessageBoundary message) {
+        return NewMessageBoundary.builder()
+                .messageType(message.getMessageType())
+                .summary(message.getSummary())
+                .messageDetails(new HashMap<>(message.getMessageDetails()))
+                .externalReferences(message.getExternalReferences())
+                .build();
+    }
+}
