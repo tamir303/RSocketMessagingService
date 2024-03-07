@@ -23,14 +23,18 @@ public class ClientOpenMeteoController {
         this.openMeteoService = openMeteoService;
     }
 
-    @GetMapping(path = "/weekly-forecast", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(
+            path = {"/weekly-forecast"},
+            produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<Map<String, Object>> getWeeklyForecast(@RequestParam int days,
                                                        @RequestParam double latitude,
                                                        @RequestParam double longitude) {
         return openMeteoService.getWeeklyForecast(days, new LocationBoundary(latitude, longitude));
     }
 
-    @GetMapping(path = "/daily-recommendation", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(
+            path = {"/daily-recommendation"},
+            produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<Map<String, Object>> getDailyRecommendation(@RequestParam double latitude,
                                                             @RequestParam double longitude,
                                                             @RequestParam int hours) {

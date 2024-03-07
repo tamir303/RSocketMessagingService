@@ -1,11 +1,16 @@
 package com.project.rsocketmessagingservice.logic;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
 import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.data.DeviceEntity;
@@ -19,6 +24,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.Reader;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
@@ -157,12 +163,60 @@ public class WeatherServiceImpl implements WeatherService {
                 .doOnNext(System.err::println);
     }
 
-    //TODO: Need to decide on the forecast structure in response to the consumer
+    //// WORK
     @Override
     public Flux<MessageBoundary> getWeatherForecast(MessageBoundary message) {
-        //use here OpenMeteoExtAPI to get the forecast, do not forget to pass the location and the number of days, the API returns Flux of data structures by days you can pass them through or more beautify them
-        return null;
+        Gson gson = new Gson();
+
+        JsonElement messageDetailsElement = gson.toJsonTree(message.getMessageDetails());
+        if (messageDetailsElement.isJsonObject()) {
+            JsonObject messageDetailsObject = messageDetailsElement.getAsJsonObject();
+
+            JsonElement deviceElement = messageDetailsObject.get("device");
+            if (deviceElement != null && deviceElement.isJsonObject()) {
+                JsonObject deviceObject = deviceElement.getAsJsonObject();
+
+                JsonElement additionalAttributesElement = deviceObject.get("additionalAttributes");
+                if (additionalAttributesElement != null && additionalAttributesElement.isJsonObject()) {
+                    // Extract additionalAttributes using Gson
+                    JsonObject additionalAttributes = additionalAttributesElement.getAsJsonObject();
+
+                    // Print the additionalAttributes map
+                    System.err.println(additionalAttributes);
+
+                    // DEFAULT VALUES FOR WEEK + TEL AVIV LOCATION
+                    int days = 7;
+                    LocationBoundary locationBoundary = new LocationBoundary(32.0809, 34.7806);
+
+                    // Check if additionalAttributes contains necessary keys
+                    if (additionalAttributes.has("days")) {
+                        // 7 days default
+                        days = additionalAttributes.get("days").getAsInt();
+                    }
+                    if (additionalAttributes.has("location")) {
+                        locationBoundary = gson.fromJson(additionalAttributes.get("location"), LocationBoundary.class);
+                    }
+
+                    // Subscribe to the flux and convert each emitted string to MessageBoundary
+                    return openMeteoExtAPI.getWeeklyForecast(days, locationBoundary)
+                            .map(jsonString -> {
+                                DeviceDetailsBoundary deviceDetailsBoundary =  gson.fromJson(deviceObject, DeviceDetailsBoundary.class);
+                                DeviceBoundary deviceBoundary = new DeviceBoundary(deviceDetailsBoundary);
+                                deviceBoundary.getDevice().getAdditionalAttributes().put("day", jsonString);
+                                message.getMessageDetails().put("device", deviceBoundary.getDevice());
+                                return message;
+                            });
+                } else {
+                    System.err.println("Additional attributes are null or not present");
+                }
+            } else {
+                System.err.println("Device object is null or not present");
+            }
+        }
+        return Flux.empty();
     }
+
+
 
     //TODO: Need to decide on the recommendations structure in response to the consumer
     @Override
