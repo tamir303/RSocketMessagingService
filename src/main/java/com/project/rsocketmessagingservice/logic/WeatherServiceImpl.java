@@ -198,11 +198,13 @@ public class WeatherServiceImpl implements WeatherService {
                     }
 
                     // Subscribe to the flux and convert each emitted string to MessageBoundary
+                    LocationBoundary finalLocationBoundary = locationBoundary;
                     return openMeteoExtAPI.getWeeklyForecast(days, locationBoundary)
                             .map(jsonString -> {
                                 DeviceDetailsBoundary deviceDetailsBoundary =  gson.fromJson(deviceObject, DeviceDetailsBoundary.class);
                                 DeviceBoundary deviceBoundary = new DeviceBoundary(deviceDetailsBoundary);
-                                deviceBoundary.getDevice().getAdditionalAttributes().put("day", jsonString);
+                                deviceBoundary.getDevice().getAdditionalAttributes().put("location", finalLocationBoundary);
+                                deviceBoundary.getDevice().getAdditionalAttributes().put("data", jsonString);
                                 message.getMessageDetails().put("device", deviceBoundary.getDevice());
                                 return message;
                             });
