@@ -94,11 +94,15 @@ public class WeatherServiceImpl implements WeatherService {
 
     //TODO: Need to decide if need this or get all from message boundary
     @Override
-    public Flux<DeviceBoundary> getAllWeatherMachines() {
-        return deviceCrud
-                .findAll()
-                .map(DeviceBoundary::new)
-                .log();
+    public Flux<MessageBoundary> getAllWeatherMachines() {
+        Flux<DeviceEntity> deviceEntities = this.deviceCrud.findAll();
+        return deviceEntities.flatMap(deviceEntity -> Mono.just(MessageBoundary.builder()
+                .messageId(UUID.randomUUID().toString())
+                .publishedTimestamp(LocalDateTime.now().toString())
+                .messageType("Get All Weather Machines")
+                .summary("Show Device " + deviceEntity.getId() + " Details")
+                .externalReferences(List.of((new ExternalReferenceBoundary("WeatherService", deviceEntity.getId()))))
+                .messageDetails(deviceEntity.toMap()).build()));
     }
 
 

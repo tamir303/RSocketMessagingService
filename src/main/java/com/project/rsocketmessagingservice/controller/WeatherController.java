@@ -38,7 +38,7 @@ public class WeatherController {
     }
 
     @MessageMapping("get-all-weather-machines")
-    public Flux<DeviceBoundary> getAllWeatherMachines() {
+    public Flux<MessageBoundary> getAllWeatherMachines() {
         return weatherService.getAllWeatherMachines();
     }
 
