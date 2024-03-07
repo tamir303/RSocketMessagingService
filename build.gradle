@@ -64,7 +64,3 @@ dependencyManagement {
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-exec {
-    commandLine 'docker-compose', 'up'
-}

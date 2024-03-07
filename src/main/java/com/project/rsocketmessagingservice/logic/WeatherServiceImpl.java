@@ -51,7 +51,6 @@ public class WeatherServiceImpl implements WeatherService {
     //// WORK
     @Override
     public Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message) {
-
         return validateAndGetDevice(message.getMessageDetails())
                 .flatMap(device -> {
                     System.err.println(device);

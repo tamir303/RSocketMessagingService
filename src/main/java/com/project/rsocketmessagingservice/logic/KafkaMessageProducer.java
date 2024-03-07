@@ -1,6 +1,7 @@
 package com.project.rsocketmessagingservice.logic;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,8 @@ public class KafkaMessageProducer {
         jackson = new ObjectMapper();
     }
 
-    public Mono<Void> sendMessageToKafka(MessageService message) {
+    // Send message to Kafka
+    public Mono<Void> sendMessageToKafka(MessageBoundary message) {
         try {
             String messageToKafka = this.jackson.writeValueAsString(message);
             kafka.send(targetTopic, message);

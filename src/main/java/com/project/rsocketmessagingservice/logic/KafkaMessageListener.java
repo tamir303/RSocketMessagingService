@@ -33,6 +33,7 @@ public class KafkaMessageListener {
         objectMapper = new ObjectMapper();
     }
 
+    // Listen to the Kafka topic and process the received message
     @Bean
     public Consumer<String> demoMessageSink() {
         return message -> {
@@ -46,12 +47,17 @@ public class KafkaMessageListener {
         };
     }
 
+    // Validate the message received from Kafka
     private void validateMessage(MessageBoundary message) {
-        if (message.getMessageDetails() == null || !message.getMessageDetails().containsKey("device") || message.getMessageDetails().get("device") == null) {
+        if (message.getMessageDetails() == null
+                || !message.getMessageDetails().containsKey("device")
+                || message.getMessageDetails().get("device") == null
+                || !message.getExternalReferences().get(0).getService().equals("WeatherService")) {
             throw new MessageWithoutDeviceException("Message is missing device details.");
         }
     }
 
+    // Process the weather message and create a new device event
     private void processWeatherMessage(MessageBoundary message) {
         DeviceDetailsBoundary deviceDetails = objectMapper.convertValue(message.getMessageDetails().get("device"), DeviceDetailsBoundary.class);
         if (deviceDetails.isWeatherDevice()) {
@@ -63,6 +69,7 @@ public class KafkaMessageListener {
         }
     }
 
+    // Build a new message from the received message
     private NewMessageBoundary buildWeatherMessage(MessageBoundary message) {
         return NewMessageBoundary.builder()
                 .messageType(message.getMessageType())
