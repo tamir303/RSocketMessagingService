@@ -67,7 +67,9 @@ public class ClientWeatherController {
                 .log();
     }
 
-    @GetMapping("/all")
+    @GetMapping(
+            path = {"/all"},
+            produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
     public Flux<MessageBoundary> getAllWeatherMachines() {
         return this.requester.route("get-all-weather-machines")
                 .retrieveFlux(MessageBoundary.class)

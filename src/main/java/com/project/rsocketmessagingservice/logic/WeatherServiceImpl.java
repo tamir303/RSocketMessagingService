@@ -89,7 +89,7 @@ public class WeatherServiceImpl implements WeatherService {
         }
     }
 
-    // TODO: NEED TO CHECK
+    //// WORK
     @Override
     public Mono<Void> updateWeatherMachineEvent(MessageBoundary data) {
         return validateAndGetDevice(data.getMessageDetails())
@@ -116,12 +116,10 @@ public class WeatherServiceImpl implements WeatherService {
                 .onErrorResume(error -> Mono.empty()); // or handle the error as needed
     }
 
-
-
-    //WORK but returns list and not flux....
+    //// WORK
     @Override
     public Flux<MessageBoundary> getAllWeatherMachines() {
-        return this.deviceCrud.findAll()
+        return deviceCrud.findAll()
                 .flatMap(deviceEntity -> {
                     String messageId = UUID.randomUUID().toString();
                     String timestamp = LocalDateTime.now().toString();
@@ -129,18 +127,20 @@ public class WeatherServiceImpl implements WeatherService {
                     ExternalReferenceBoundary externalReference = new ExternalReferenceBoundary("WeatherService", deviceEntity.getId());
                     Map<String, Object> deviceDetailsMap = Collections.singletonMap("device", deviceEntity.toMap());
 
-                    return Mono.just(MessageBoundary.builder()
+                    MessageBoundary messageBoundary = MessageBoundary.builder()
                             .messageId(messageId)
                             .publishedTimestamp(timestamp)
                             .messageType("Get All Weather Machines")
                             .summary(summary)
                             .externalReferences(Collections.singletonList(externalReference))
                             .messageDetails(deviceDetailsMap)
-                            .build());
-                });
+                            .build();
+
+                    // Emit each message boundary individually
+                    return Mono.just(messageBoundary);
+                })
+                .doOnNext(System.err::println);
     }
-
-
 
     //TODO: Need to decide on the forecast structure in response to the consumer
     @Override
