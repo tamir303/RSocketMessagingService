@@ -222,8 +222,7 @@ public class WeatherServiceImpl implements WeatherService {
         Flux<Map<String, Object>> data = openMeteoExtAPI.getDailyRecommendation(locationBoundary, hours);
         return averageRecommendation
                 .updateAllAverages(data)
-                .flatMap(messageBoundary -> messageCrud.save(messageBoundary.toEntity())
-                        .thenReturn(messageBoundary))
+                .flatMap(messageBoundary -> messageCrud.save(messageBoundary.toEntity()).thenReturn(messageBoundary))
                 .doOnNext(kafka::sendMessageToKafka);
     }
 
