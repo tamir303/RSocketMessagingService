@@ -16,6 +16,9 @@ import com.project.rsocketmessagingservice.data.DeviceEntity;
 import com.project.rsocketmessagingservice.logic.clients.ComponentClient;
 import com.project.rsocketmessagingservice.logic.kafka.KafkaMessageProducer;
 import com.project.rsocketmessagingservice.logic.openMeteo.OpenMeteoExtAPI;
+import com.project.rsocketmessagingservice.utils.exceptions.DeviceIsNotWeatherTypeException;
+import com.project.rsocketmessagingservice.utils.exceptions.DeviceNotFoundException;
+import com.project.rsocketmessagingservice.utils.exceptions.MessageWithoutDeviceException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +30,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static com.project.rsocketmessagingservice.utils.Utils.createUpdateMessage;
+import static com.project.rsocketmessagingservice.utils.MessageCreator.createUpdateMessage;
 
 @Service
 @RequiredArgsConstructor
@@ -73,7 +76,7 @@ public class WeatherServiceImpl implements WeatherService {
                                     return Mono.empty();
                                 });
                     } else {
-                        return Mono.empty();
+                        return Mono.error(new DeviceIsNotWeatherTypeException("Device is not a weather machine"));
                     }
                 })
                 // Handle error during processing
@@ -91,9 +94,7 @@ public class WeatherServiceImpl implements WeatherService {
                         DeviceBoundary deviceBoundary = jackson.convertValue(messageDetails, DeviceBoundary.class);
                         // Extract the device ID from the message details
                         return Optional.ofNullable(deviceBoundary)
-                                .map(DeviceBoundary::getDevice)
-                                .map(DeviceDetailsBoundary::getId)
-                                .map(Mono::just)
+                                .map(device -> Mono.just(device.getDevice().getId()))
                                 .orElse(Mono.empty());
                     } catch (Exception e) {
                         log.error("Error converting message details: {}", e.getMessage());
@@ -121,7 +122,7 @@ public class WeatherServiceImpl implements WeatherService {
                         return this.deviceCrud.existsById(weatherDeviceDetails.getId())
                                 .flatMap(exists -> {
                                     if (!exists) {
-                                        return Mono.error(new RuntimeException("Device not found"));
+                                        return Mono.error(new DeviceNotFoundException("Device not found with ID: " + weatherDeviceDetails.getId()));
                                     } else {
                                         log.info("Updating weather machine event with ID: {}", weatherDeviceDetails.getId());
                                         // Save to database and conditionally send PUT request
@@ -237,7 +238,7 @@ public class WeatherServiceImpl implements WeatherService {
             DeviceDetailsBoundary deviceDetailsBoundary = jackson.convertValue(messageDetails.get("device"), DeviceDetailsBoundary.class);
             if (deviceDetailsBoundary == null) {
                 log.error("No 'device' object found in messageDetails.");
-                return Mono.empty();
+                return Mono.error(new MessageWithoutDeviceException("No 'device' object found in messageDetails."));
             }
             return Mono.just(deviceDetailsBoundary).log();
         } catch (Exception e) {
