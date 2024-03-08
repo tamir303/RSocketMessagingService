@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.utils.AverageRecommendation;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
@@ -18,6 +19,7 @@ import com.project.rsocketmessagingservice.logic.openMeteo.OpenMeteoExtAPI;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,10 +39,21 @@ public class WeatherServiceImpl implements WeatherService {
     private final OpenMeteoExtAPI openMeteoExtAPI;
     private final ComponentClient componentClient;
     private ObjectMapper jackson;
+    // DEFAULT VALUES FOR WEEK + TEL AVIV LOCATION
+    @Value("${openmeteo.days.default}")
+    private int days;
+    @Value("${openmeteo.hours.default}")
+    private  int hours;
+    @Value("${openmeteo.lat}")
+    private double latitude;
+    @Value("${openmeteo.lng}")
+    private double longitude;
+    private LocationBoundary locationBoundary;
 
     @PostConstruct
     public void init() {
         jackson = new ObjectMapper();
+        locationBoundary = new LocationBoundary(latitude, longitude);
     }
 
     //// WORK
@@ -174,9 +187,7 @@ public class WeatherServiceImpl implements WeatherService {
                     // Print the additionalAttributes map
                     System.err.println(additionalAttributes);
 
-                    // DEFAULT VALUES FOR WEEK + TEL AVIV LOCATION
-                    int days = 7;
-                    LocationBoundary locationBoundary = new LocationBoundary(32.0809, 34.7806);
+
 
                     // Check if additionalAttributes contains necessary keys
                     if (additionalAttributes.has("days")) {
@@ -208,12 +219,18 @@ public class WeatherServiceImpl implements WeatherService {
         return Flux.empty();
     }
 
-    //TODO: Need to decide on the recommendations structure in response to the consumer
     @Override
     public Mono<MessageBoundary> getWeatherRecommendations() {
-        //use here OpenMeteoExtAPI to build the recommendation structure, do not forget to pass the location and the number of hours for the daily recommendation, the API returns Flux of data structures by hours analyze them and return Mono
-        return null;
+        AverageRecommendation averageRecommendation = new AverageRecommendation();
+        Flux<Map<String, Object>> data = openMeteoExtAPI.getDailyRecommendation(locationBoundary, hours);
+        return data.flatMap()
     }
+
+
+
+
+
+
 
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
         try {

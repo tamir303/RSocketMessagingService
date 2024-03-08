@@ -88,10 +88,9 @@ public class ClientWeatherController {
     }
 
     @GetMapping("/recommendations")
-    public Mono<Void> getWeatherRecommendations(@RequestBody NewMessageBoundary data) {
+    public Mono<MessageBoundary> getWeatherRecommendations() {
         return this.requester.route("get-weather-recommendations")
-                .data(Mono.just(data))
-                .send()
+                .retrieveMono(MessageBoundary.class)
                 .log();
     }
 
