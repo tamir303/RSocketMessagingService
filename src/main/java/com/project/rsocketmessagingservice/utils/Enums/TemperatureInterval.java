@@ -27,4 +27,5 @@ public enum TemperatureInterval {
         // If temperature is not within any interval, return null or throw an exception
         return null;
     }
+
 }

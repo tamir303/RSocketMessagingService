@@ -163,8 +163,7 @@ public class WeatherServiceImpl implements WeatherService {
 
                     // Emit each message boundary individually
                     return Mono.just(messageBoundary);
-                })
-                .doOnNext(System.err::println);
+                });
     }
 
     //// WORK
@@ -184,11 +183,6 @@ public class WeatherServiceImpl implements WeatherService {
                 if (additionalAttributesElement != null && additionalAttributesElement.isJsonObject()) {
                     // Extract additionalAttributes using Gson
                     JsonObject additionalAttributes = additionalAttributesElement.getAsJsonObject();
-
-                    // Print the additionalAttributes map
-                    System.err.println(additionalAttributes);
-
-
 
                     // Check if additionalAttributes contains necessary keys
                     if (additionalAttributes.has("days")) {
@@ -226,7 +220,6 @@ public class WeatherServiceImpl implements WeatherService {
         Flux<Map<String, Object>> data = openMeteoExtAPI.getDailyRecommendation(locationBoundary, hours);
         return averageRecommendation.updateAllAverages(data);
     }
-
 
 
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
