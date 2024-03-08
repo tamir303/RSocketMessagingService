@@ -8,6 +8,7 @@ import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceIdBoundary;
+import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.utils.AverageRecommendation;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
@@ -41,6 +42,7 @@ import static com.project.rsocketmessagingservice.utils.exceptions.ConstantError
 public class WeatherServiceImpl implements WeatherService {
     private final KafkaMessageProducer kafka;
     private final MessageService messageService;
+    private  final MessageCrud messageCrud;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
     private final ComponentClient componentClient;
@@ -166,11 +168,9 @@ public class WeatherServiceImpl implements WeatherService {
 
                     // Emit each message boundary individually
                     return Mono.just(messageBoundary);
-                })
-                .doOnNext(System.err::println);
+                });
     }
 
-    //// WORK
     @Override
     public Flux<MessageBoundary> getWeatherForecast(MessageBoundary message) {
         Gson gson = new Gson();
@@ -188,11 +188,6 @@ public class WeatherServiceImpl implements WeatherService {
                     // Extract additionalAttributes using Gson
                     JsonObject additionalAttributes = additionalAttributesElement.getAsJsonObject();
 
-                    // Print the additionalAttributes map
-                    System.err.println(additionalAttributes);
-
-
-
                     // Check if additionalAttributes contains necessary keys
                     if (additionalAttributes.has("days")) {
                         // 7 days default
@@ -204,14 +199,30 @@ public class WeatherServiceImpl implements WeatherService {
 
                     // Subscribe to the flux and convert each emitted string to MessageBoundary
                     LocationBoundary finalLocationBoundary = locationBoundary;
+
                     return openMeteoExtAPI.getWeeklyForecast(days, locationBoundary)
-                            .map(jsonString -> {
+                            .flatMap(jsonString -> {
+                                // Create a new MessageBoundary object as a clone
+                                MessageBoundary clonedMessage = new MessageBoundary();
+                                // Copy necessary fields from the original message
+                                clonedMessage.setMessageId(UUID.randomUUID().toString());
+                                clonedMessage.setPublishedTimestamp(LocalDateTime.now().toString());
+                                clonedMessage.setMessageType(message.getMessageType());
+                                clonedMessage.setSummary(message.getSummary());
+                                clonedMessage.setExternalReferences(message.getExternalReferences());
+                                // Create a deep copy of the message details to avoid mutation of the original message
+                                Map<String, Object> messageDetailsCopy = new HashMap<>(message.getMessageDetails());
+                                clonedMessage.setMessageDetails(messageDetailsCopy);
+
+                                // Modify the cloned message as needed
                                 DeviceDetailsBoundary deviceDetailsBoundary =  gson.fromJson(deviceObject, DeviceDetailsBoundary.class);
                                 DeviceBoundary deviceBoundary = new DeviceBoundary(deviceDetailsBoundary);
                                 deviceBoundary.getDevice().getAdditionalAttributes().put("location", finalLocationBoundary);
-                                deviceBoundary.getDevice().getAdditionalAttributes().put("data", jsonString);
-                                message.getMessageDetails().put("device", deviceBoundary.getDevice());
-                                return message;
+                                deviceBoundary.getDevice().getAdditionalAttributes().put(jsonString.get("date").toString(), jsonString);
+                                clonedMessage.getMessageDetails().put("device", deviceBoundary.getDevice());
+
+                                // Save the cloned message to the database
+                                return messageCrud.save(clonedMessage.toEntity()).thenReturn(clonedMessage);
                             });
                 } else {
                     System.err.println("Additional attributes are null or not present");
@@ -227,7 +238,10 @@ public class WeatherServiceImpl implements WeatherService {
     public Mono<MessageBoundary> createWeatherRecommendations() {
         AverageRecommendation averageRecommendation = new AverageRecommendation();
         Flux<Map<String, Object>> data = openMeteoExtAPI.getDailyRecommendation(locationBoundary, hours);
-        return averageRecommendation.updateAllAverages(data);
+        return averageRecommendation
+                .updateAllAverages(data)
+                .flatMap(messageBoundary -> messageCrud.save(messageBoundary.toEntity()).thenReturn(messageBoundary))
+                .doOnNext(kafka::sendMessageToKafka);
     }
 
     @Override
