@@ -171,7 +171,6 @@ public class WeatherServiceImpl implements WeatherService {
                 });
     }
 
-    //// WORK
     @Override
     public Flux<MessageBoundary> getWeatherForecast(MessageBoundary message) {
         Gson gson = new Gson();
@@ -200,24 +199,30 @@ public class WeatherServiceImpl implements WeatherService {
 
                     // Subscribe to the flux and convert each emitted string to MessageBoundary
                     LocationBoundary finalLocationBoundary = locationBoundary;
-                    Map<String, Object> insideDevice = new TreeMap<>();
 
                     return openMeteoExtAPI.getWeeklyForecast(days, locationBoundary)
-                            .map(jsonString -> {
+                            .flatMap(jsonString -> {
+                                // Create a new MessageBoundary object as a clone
+                                MessageBoundary clonedMessage = new MessageBoundary();
+                                // Copy necessary fields from the original message
+                                clonedMessage.setMessageId(UUID.randomUUID().toString());
+                                clonedMessage.setPublishedTimestamp(LocalDateTime.now().toString());
+                                clonedMessage.setMessageType(message.getMessageType());
+                                clonedMessage.setSummary(message.getSummary());
+                                clonedMessage.setExternalReferences(message.getExternalReferences());
+                                // Create a deep copy of the message details to avoid mutation of the original message
+                                Map<String, Object> messageDetailsCopy = new HashMap<>(message.getMessageDetails());
+                                clonedMessage.setMessageDetails(messageDetailsCopy);
+
+                                // Modify the cloned message as needed
                                 DeviceDetailsBoundary deviceDetailsBoundary =  gson.fromJson(deviceObject, DeviceDetailsBoundary.class);
                                 DeviceBoundary deviceBoundary = new DeviceBoundary(deviceDetailsBoundary);
-//                                deviceBoundary.getDevice().setId(UUID.randomUUID().toString());
                                 deviceBoundary.getDevice().getAdditionalAttributes().put("location", finalLocationBoundary);
                                 deviceBoundary.getDevice().getAdditionalAttributes().put(jsonString.get("date").toString(), jsonString);
+                                clonedMessage.getMessageDetails().put("device", deviceBoundary.getDevice());
 
-//                                insideDevice.put(jsonString.get("date").toString(), jsonString);
-//                                deviceBoundary.getDevice().setAdditionalAttributes(insideDevice);
-
-                                message.getMessageDetails().put("device", deviceBoundary.getDevice());
-
-                                messageCrud.save(message.toEntity()).subscribe();
-
-                                return message;
+                                // Save the cloned message to the database
+                                return messageCrud.save(clonedMessage.toEntity()).thenReturn(clonedMessage);
                             });
                 } else {
                     System.err.println("Additional attributes are null or not present");
