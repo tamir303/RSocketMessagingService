@@ -2,6 +2,7 @@ package com.project.rsocketmessagingservice.controller;
 
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceIdBoundary;
 import com.project.rsocketmessagingservice.logic.WeatherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 public class WeatherController {
-
     private final WeatherService weatherService;
 
     @MessageMapping("attach-new-weather-machine")
@@ -39,13 +39,18 @@ public class WeatherController {
         return weatherService.getAllWeatherMachines();
     }
 
+    @MessageMapping("get-weather-machine-by-id")
+    public Mono<MessageBoundary> getWeatherMachineById(@Payload DeviceIdBoundary id) {
+        return weatherService.getWeatherMachineById(id);
+    }
+
     @MessageMapping("remove-all-weather-machines")
     public Mono<Void> removeAllWeatherMachines() {
         return weatherService.removeAllWeatherMachines();
     }
 
     @MessageMapping("get-weather-forecast")
-    public Flux<MessageBoundary> getWeatherForecast(@RequestBody MessageBoundary message) {
+    public Flux<MessageBoundary> getWeatherForecast(@Payload MessageBoundary message) {
         return weatherService.getWeatherForecast(message);
     }
 
