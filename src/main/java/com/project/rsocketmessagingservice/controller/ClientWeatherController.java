@@ -52,7 +52,7 @@ public class ClientWeatherController {
                     .log();
     }
 
-    @DeleteMapping("/remove")
+    @DeleteMapping(path = {"/remove"} ,params = {"message"})
     public Mono<Void> removeWeatherMachine(@RequestBody MessageBoundary message) {
         return this.requester.route("remove-weather-machine")
                 .data(message)
