@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceIdBoundary;
 import com.project.rsocketmessagingservice.utils.AverageRecommendation;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
@@ -31,6 +32,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.project.rsocketmessagingservice.utils.MessageCreator.createUpdateMessage;
+import static com.project.rsocketmessagingservice.utils.MessageCreator.getMachineByIdMessage;
+import static com.project.rsocketmessagingservice.utils.exceptions.ConstantErrorMessages.NO_DEVICE_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -227,6 +230,24 @@ public class WeatherServiceImpl implements WeatherService {
         return averageRecommendation.updateAllAverages(data);
     }
 
+    @Override
+    public Mono<Void> removeAllWeatherMachines() {
+        log.info("Removing all weather machines");
+        return deviceCrud
+                .deleteAll()
+                .log();
+    }
+
+    @Override
+    public Mono<MessageBoundary> getWeatherMachineById(DeviceIdBoundary id) {
+        log.info("Getting weather machine by ID: {}", id);
+
+        return deviceCrud.findById(id.getDeviceId())
+                .map(device -> getMachineByIdMessage(device, id.getDeviceId()))
+                .doOnNext(message -> log.info("Found weather machine: {}", message))
+                .doOnError(error -> log.error("Error getting weather machine by ID: {}", error.getMessage()))
+                .switchIfEmpty(Mono.error(new DeviceNotFoundException(NO_DEVICE_FOUND)));
+    }
 
 
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
