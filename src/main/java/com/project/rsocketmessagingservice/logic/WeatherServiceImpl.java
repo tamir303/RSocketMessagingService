@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
+import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.utils.AverageRecommendation;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
@@ -38,6 +39,7 @@ import static com.project.rsocketmessagingservice.utils.MessageCreator.createUpd
 public class WeatherServiceImpl implements WeatherService {
     private final KafkaMessageProducer kafka;
     private final MessageService messageService;
+    private  final MessageCrud messageCrud;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
     private final ComponentClient componentClient;
@@ -202,6 +204,7 @@ public class WeatherServiceImpl implements WeatherService {
                                 deviceBoundary.getDevice().getAdditionalAttributes().put("location", finalLocationBoundary);
                                 deviceBoundary.getDevice().getAdditionalAttributes().put("data", jsonString);
                                 message.getMessageDetails().put("device", deviceBoundary.getDevice());
+                                messageCrud.save(message.toEntity()); // save at messages DB
                                 return message;
                             });
                 } else {
@@ -214,12 +217,20 @@ public class WeatherServiceImpl implements WeatherService {
         return Flux.empty();
     }
 
+    //// WORK - KAFKA
     @Override
     public Mono<MessageBoundary> createWeatherRecommendations() {
         AverageRecommendation averageRecommendation = new AverageRecommendation();
         Flux<Map<String, Object>> data = openMeteoExtAPI.getDailyRecommendation(locationBoundary, hours);
-        return averageRecommendation.updateAllAverages(data);
+        return averageRecommendation
+                .updateAllAverages(data)
+                .flatMap(messageBoundary -> {
+                    messageCrud.save(messageBoundary.toEntity());
+                    kafka.sendMessageToKafka(messageBoundary);
+                    return Mono.just(messageBoundary);
+                });
     }
+
 
 
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
