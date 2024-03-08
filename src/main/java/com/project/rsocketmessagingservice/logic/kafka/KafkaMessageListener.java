@@ -62,6 +62,7 @@ public class KafkaMessageListener {
     private void processWeatherMessage(MessageBoundary message) {
         DeviceDetailsBoundary deviceDetails = objectMapper.convertValue(message.getMessageDetails().get("device"), DeviceDetailsBoundary.class);
         if (deviceDetails.isWeatherDevice()) {
+            // Process the message based on the message type (create or remove) device event from kafka
             switch (message.getMessageType().toLowerCase()) {
                 // Create a new weather machine event
                 case "create" -> {
@@ -73,6 +74,10 @@ public class KafkaMessageListener {
                 case "remove" -> {
                     log.info("Removing weather machine event from kafka.");
                     weatherService.removeWeatherMachineEvent(message);
+                }
+                case "update" -> {
+                    log.info("Updating weather machine event from kafka.");
+                    weatherService.updateWeatherMachineEvent(message);
                 }
             }
         } else {
