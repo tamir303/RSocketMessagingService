@@ -204,7 +204,6 @@ public class WeatherServiceImpl implements WeatherService {
                                 deviceBoundary.getDevice().getAdditionalAttributes().put("location", finalLocationBoundary);
                                 deviceBoundary.getDevice().getAdditionalAttributes().put("data", jsonString);
                                 message.getMessageDetails().put("device", deviceBoundary.getDevice());
-                                messageCrud.save(message.toEntity()); // save at messages DB
                                 return message;
                             });
                 } else {
@@ -217,20 +216,16 @@ public class WeatherServiceImpl implements WeatherService {
         return Flux.empty();
     }
 
-    //// WORK - KAFKA
     @Override
     public Mono<MessageBoundary> createWeatherRecommendations() {
         AverageRecommendation averageRecommendation = new AverageRecommendation();
         Flux<Map<String, Object>> data = openMeteoExtAPI.getDailyRecommendation(locationBoundary, hours);
         return averageRecommendation
                 .updateAllAverages(data)
-                .flatMap(messageBoundary -> {
-                    messageCrud.save(messageBoundary.toEntity());
-                    kafka.sendMessageToKafka(messageBoundary);
-                    return Mono.just(messageBoundary);
-                });
+                .flatMap(messageBoundary -> messageCrud.save(messageBoundary.toEntity())
+                        .thenReturn(messageBoundary))
+                .doOnNext(kafka::sendMessageToKafka);
     }
-
 
 
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
