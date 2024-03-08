@@ -220,15 +220,11 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     @Override
-    public Mono<MessageBoundary> getWeatherRecommendations() {
+    public Mono<MessageBoundary> createWeatherRecommendations() {
         AverageRecommendation averageRecommendation = new AverageRecommendation();
         Flux<Map<String, Object>> data = openMeteoExtAPI.getDailyRecommendation(locationBoundary, hours);
-        return data.flatMap()
+        return averageRecommendation.updateAllAverages(data);
     }
-
-
-
-
 
 
 

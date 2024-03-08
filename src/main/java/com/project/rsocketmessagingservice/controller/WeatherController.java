@@ -48,6 +48,6 @@ public class WeatherController {
 
     @MessageMapping("get-weather-recommendations")
     public Mono<MessageBoundary> getWeatherRecommendations() {
-        return weatherService.getWeatherRecommendations();
+        return weatherService.createWeatherRecommendations();
     }
 }
