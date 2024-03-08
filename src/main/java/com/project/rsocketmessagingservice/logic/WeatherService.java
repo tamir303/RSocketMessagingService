@@ -12,4 +12,5 @@ public interface WeatherService {
     Flux<MessageBoundary> getAllWeatherMachines();
     Flux<MessageBoundary> getWeatherForecast(MessageBoundary message);
     Mono<MessageBoundary> createWeatherRecommendations();
+    Mono<Void> removeAllWeatherMachines();
 }

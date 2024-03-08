@@ -52,17 +52,24 @@ public class ClientWeatherController {
     }
 
     @DeleteMapping("/remove")
-    public Mono<Void> removeWeatherMachine( @RequestBody MessageBoundary message ) {
+    public Mono<Void> removeWeatherMachine(@RequestBody MessageBoundary message) {
         return this.requester.route("remove-weather-machine")
                 .data(message)
                 .send()
                 .log();
     }
 
+    @DeleteMapping("/remove")
+    public Mono<Void> removeAllWeatherMachines() {
+        return this.requester.route("remove-all-weather-machines")
+                .send()
+                .log();
+    }
+
     @PutMapping("/update")
-    public Mono<Void> updateWeatherMachine(@RequestBody MessageBoundary data) {
+    public Mono<Void> updateWeatherMachine(@RequestBody MessageBoundary message) {
         return this.requester.route("update-weather-machine")
-                .data(data)
+                .data(message)
                 .send()
                 .log();
     }
@@ -80,9 +87,9 @@ public class ClientWeatherController {
             path = "/forecast",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
-    public Flux<MessageBoundary> getWeatherForecast(@RequestBody MessageBoundary data) {
+    public Flux<MessageBoundary> getWeatherForecast(@RequestBody MessageBoundary message) {
         return this.requester.route("get-weather-forecast")
-                .data(data)
+                .data(message)
                 .retrieveFlux(MessageBoundary.class)
                 .log();
     }

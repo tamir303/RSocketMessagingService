@@ -227,7 +227,11 @@ public class WeatherServiceImpl implements WeatherService {
         return averageRecommendation.updateAllAverages(data);
     }
 
-
+    @Override
+    public Mono<Void> removeAllWeatherMachines() {
+        log.info("Removing all weather machines from the database.");
+        return this.deviceCrud.deleteAll();
+    }
 
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
         try {

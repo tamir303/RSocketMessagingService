@@ -20,25 +20,28 @@ public class WeatherController {
     private final WeatherService weatherService;
 
     @MessageMapping("attach-new-weather-machine")
-    public Mono<MessageBoundary> attachNewWeatherMachineEvent( @Payload NewMessageBoundary message) {
-        log.debug("Invoking: attach-new-weather-machine");
+    public Mono<MessageBoundary> attachNewWeatherMachineEvent(@Payload NewMessageBoundary message) {
         return weatherService.attachNewWeatherMachineEvent(message);
     }
 
     @MessageMapping("remove-weather-machine")
-    public Mono<Void> removeWeatherMachineEvent( @Payload MessageBoundary message ) {
+    public Mono<Void> removeWeatherMachineEvent(@Payload MessageBoundary message) {
         return weatherService.removeWeatherMachineEvent(message);
     }
 
     @MessageMapping("update-weather-machine")
-    public Mono<Void> updateWeatherMachineEvent(@Payload MessageBoundary data) {
-        return weatherService.updateWeatherMachineEvent(data);
+    public Mono<Void> updateWeatherMachineEvent(@Payload MessageBoundary message) {
+        return weatherService.updateWeatherMachineEvent(message);
     }
 
     @MessageMapping("get-all-weather-machines")
     public Flux<MessageBoundary> getAllWeatherMachines() {
-        log.debug("Invoking: get-all-weather-machines");
         return weatherService.getAllWeatherMachines();
+    }
+
+    @MessageMapping("remove-all-weather-machines")
+    public Mono<Void> removeAllWeatherMachines() {
+        return weatherService.removeAllWeatherMachines();
     }
 
     @MessageMapping("get-weather-forecast")
