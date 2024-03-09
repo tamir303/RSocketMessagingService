@@ -52,7 +52,7 @@ public class ClientWeatherController {
                     .log();
     }
 
-    @DeleteMapping(path = {"/remove"} ,params = {"message"})
+    @DeleteMapping(path = {"/remove"}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     public Mono<Void> removeWeatherMachine(@RequestBody MessageBoundary message) {
         return this.requester.route("remove-weather-machine")
                 .data(message)
@@ -60,7 +60,7 @@ public class ClientWeatherController {
                 .log();
     }
 
-    @DeleteMapping("/remove")
+    @DeleteMapping("/remove/all")
     public Mono<Void> removeAllWeatherMachines() {
         return this.requester.route("remove-all-weather-machines")
                 .send()

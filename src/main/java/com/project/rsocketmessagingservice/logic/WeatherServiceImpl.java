@@ -24,7 +24,11 @@ import com.project.rsocketmessagingservice.utils.exceptions.MessageWithoutDevice
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -42,10 +46,13 @@ import static com.project.rsocketmessagingservice.utils.exceptions.ConstantError
 public class WeatherServiceImpl implements WeatherService {
     private final KafkaMessageProducer kafka;
     private final MessageService messageService;
-    private  final MessageCrud messageCrud;
+    private final MessageCrud messageCrud;
     private final DeviceCrud deviceCrud;
     private final OpenMeteoExtAPI openMeteoExtAPI;
     private final ComponentClient componentClient;
+
+    @Autowired
+    private Environment env;
     private ObjectMapper jackson;
     // DEFAULT VALUES FOR WEEK + TEL AVIV LOCATION
     @Value("${openmeteo.days.default}")
@@ -61,7 +68,8 @@ public class WeatherServiceImpl implements WeatherService {
     @PostConstruct
     public void init() {
         jackson = new ObjectMapper();
-        locationBoundary = new LocationBoundary(latitude, longitude);
+        this.days = Integer.parseInt(Objects.requireNonNull(env.getProperty("openmeteo.days.default")));
+        this.locationBoundary = new LocationBoundary(latitude, longitude);
     }
 
     //// WORK
@@ -188,12 +196,15 @@ public class WeatherServiceImpl implements WeatherService {
                     // Extract additionalAttributes using Gson
                     JsonObject additionalAttributes = additionalAttributesElement.getAsJsonObject();
 
+                    System.err.println(days+ ",   "+ locationBoundary);
                     // Check if additionalAttributes contains necessary keys
                     if (additionalAttributes.has("days")) {
                         // 7 days default
+                        System.err.println("7");
                         days = additionalAttributes.get("days").getAsInt();
                     }
                     if (additionalAttributes.has("location")) {
+                        System.err.println("location");
                         locationBoundary = gson.fromJson(additionalAttributes.get("location"), LocationBoundary.class);
                     }
 
@@ -220,6 +231,9 @@ public class WeatherServiceImpl implements WeatherService {
                                 deviceBoundary.getDevice().getAdditionalAttributes().put("location", finalLocationBoundary);
                                 deviceBoundary.getDevice().getAdditionalAttributes().put(jsonString.get("date").toString(), jsonString);
                                 clonedMessage.getMessageDetails().put("device", deviceBoundary.getDevice());
+
+                                // Reset values to default after processing each request
+                                init();
 
                                 // Save the cloned message to the database
                                 return messageCrud.save(clonedMessage.toEntity()).thenReturn(clonedMessage);
