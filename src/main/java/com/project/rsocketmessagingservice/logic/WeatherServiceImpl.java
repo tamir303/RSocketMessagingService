@@ -7,17 +7,17 @@ import com.google.gson.JsonObject;
 import com.project.rsocketmessagingservice.boundary.ExternalReferenceBoundary;
 import com.project.rsocketmessagingservice.boundary.MessageBoundary;
 import com.project.rsocketmessagingservice.boundary.NewMessageBoundary;
-import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceIdBoundary;
-import com.project.rsocketmessagingservice.dal.MessageCrud;
-import com.project.rsocketmessagingservice.utils.AverageRecommendation;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceDetailsBoundary;
+import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.DeviceIdBoundary;
 import com.project.rsocketmessagingservice.boundary.WeatherBoundaries.LocationBoundary;
 import com.project.rsocketmessagingservice.dal.DeviceCrud;
+import com.project.rsocketmessagingservice.dal.MessageCrud;
 import com.project.rsocketmessagingservice.data.DeviceEntity;
 import com.project.rsocketmessagingservice.logic.clients.ComponentClient;
 import com.project.rsocketmessagingservice.logic.kafka.KafkaMessageProducer;
 import com.project.rsocketmessagingservice.logic.openMeteo.OpenMeteoExtAPI;
+import com.project.rsocketmessagingservice.utils.AverageRecommendation;
 import com.project.rsocketmessagingservice.utils.exceptions.DeviceIsNotWeatherTypeException;
 import com.project.rsocketmessagingservice.utils.exceptions.DeviceNotFoundException;
 import com.project.rsocketmessagingservice.utils.exceptions.MessageWithoutDeviceException;
@@ -26,8 +26,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -40,6 +38,9 @@ import static com.project.rsocketmessagingservice.utils.MessageCreator.createUpd
 import static com.project.rsocketmessagingservice.utils.MessageCreator.getMachineByIdMessage;
 import static com.project.rsocketmessagingservice.utils.exceptions.ConstantErrorMessages.NO_DEVICE_FOUND;
 
+/**
+ * Service implementation for managing weather-related operations.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -58,13 +59,16 @@ public class WeatherServiceImpl implements WeatherService {
     @Value("${openmeteo.days.default}")
     private int days;
     @Value("${openmeteo.hours.default}")
-    private  int hours;
+    private int hours;
     @Value("${openmeteo.lat}")
     private double latitude;
     @Value("${openmeteo.lng}")
     private double longitude;
     private LocationBoundary locationBoundary;
 
+    /**
+     * Initializes the WeatherServiceImpl after bean creation.
+     */
     @PostConstruct
     public void init() {
         jackson = new ObjectMapper();
@@ -72,7 +76,12 @@ public class WeatherServiceImpl implements WeatherService {
         this.locationBoundary = new LocationBoundary(latitude, longitude);
     }
 
-    //// WORK
+    /**
+     * Attaches a new weather machine event.
+     *
+     * @param message Message containing the new weather machine event details.
+     * @return Mono emitting the created weather machine event.
+     */
     @Override
     public Mono<MessageBoundary> attachNewWeatherMachineEvent(NewMessageBoundary message) {
         return validateAndGetDevice(message.getMessageDetails())
@@ -97,7 +106,12 @@ public class WeatherServiceImpl implements WeatherService {
                 .log();
     }
 
-    //// WORK
+    /**
+     * Removes a weather machine event.
+     *
+     * @param message Message containing the weather machine event details to be removed.
+     * @return Mono emitting a completion signal after removing the weather machine event.
+     */
     @Override
     public Mono<Void> removeWeatherMachineEvent(MessageBoundary message) {
         return Mono.just(message)
@@ -126,7 +140,12 @@ public class WeatherServiceImpl implements WeatherService {
                 });
     }
 
-    //// WORK
+    /**
+     * Updates a weather machine event.
+     *
+     * @param message Message containing the updated weather machine event details.
+     * @return Mono emitting a completion signal after updating the weather machine event.
+     */
     public Mono<Void> updateWeatherMachineEvent(MessageBoundary message) {
         return validateAndGetDevice(message.getMessageDetails())
                 .flatMap(weatherDeviceDetails -> {
@@ -154,7 +173,12 @@ public class WeatherServiceImpl implements WeatherService {
                 .then();
     }
 
-    //// WORK
+
+    /**
+     * Retrieves all weather machines.
+     *
+     * @return Flux emitting all weather machine events.
+     */
     @Override
     public Flux<MessageBoundary> getAllWeatherMachines() {
         return deviceCrud.findAll()
@@ -179,6 +203,12 @@ public class WeatherServiceImpl implements WeatherService {
                 });
     }
 
+    /**
+     * Retrieves the weather forecast for a specific weather machine.
+     *
+     * @param message Message containing the details of the weather machine.
+     * @return Flux emitting the weather forecast for the specified weather machine.
+     */
     @Override
     public Flux<MessageBoundary> getWeatherForecast(MessageBoundary message) {
         Gson gson = new Gson();
@@ -196,7 +226,7 @@ public class WeatherServiceImpl implements WeatherService {
                     // Extract additionalAttributes using Gson
                     JsonObject additionalAttributes = additionalAttributesElement.getAsJsonObject();
 
-                    System.err.println(days+ ",   "+ locationBoundary);
+                    System.err.println(days + ",   " + locationBoundary);
                     // Check if additionalAttributes contains necessary keys
                     if (additionalAttributes.has("days")) {
                         // 7 days default
@@ -226,7 +256,7 @@ public class WeatherServiceImpl implements WeatherService {
                                 clonedMessage.setMessageDetails(messageDetailsCopy);
 
                                 // Modify the cloned message as needed
-                                DeviceDetailsBoundary deviceDetailsBoundary =  gson.fromJson(deviceObject, DeviceDetailsBoundary.class);
+                                DeviceDetailsBoundary deviceDetailsBoundary = gson.fromJson(deviceObject, DeviceDetailsBoundary.class);
                                 DeviceBoundary deviceBoundary = new DeviceBoundary(deviceDetailsBoundary);
                                 deviceBoundary.getDevice().getAdditionalAttributes().put("location", finalLocationBoundary);
                                 deviceBoundary.getDevice().getAdditionalAttributes().put(jsonString.get("date").toString(), jsonString);
@@ -248,6 +278,11 @@ public class WeatherServiceImpl implements WeatherService {
         return Flux.empty();
     }
 
+    /**
+     * Creates weather recommendations.
+     *
+     * @return Mono emitting the created weather recommendations.
+     */
     @Override
     public Mono<MessageBoundary> createWeatherRecommendations() {
         AverageRecommendation averageRecommendation = new AverageRecommendation();
@@ -258,6 +293,11 @@ public class WeatherServiceImpl implements WeatherService {
                 .doOnNext(kafka::sendMessageToKafka);
     }
 
+    /**
+     * Removes all weather machines.
+     *
+     * @return Mono emitting a completion signal after removing all weather machines.
+     */
     @Override
     public Mono<Void> removeAllWeatherMachines() {
         log.info("Removing all weather machines");
@@ -266,6 +306,12 @@ public class WeatherServiceImpl implements WeatherService {
                 .log();
     }
 
+    /**
+     * Retrieves a weather machine by its ID.
+     *
+     * @param id ID of the weather machine.
+     * @return Mono emitting the weather machine corresponding to the given ID.
+     */
     @Override
     public Mono<MessageBoundary> getWeatherMachineById(DeviceIdBoundary id) {
         log.info("Getting weather machine by ID: {}", id);
@@ -277,7 +323,12 @@ public class WeatherServiceImpl implements WeatherService {
                 .switchIfEmpty(Mono.error(new DeviceNotFoundException(NO_DEVICE_FOUND)));
     }
 
-
+    /**
+     * Validates and retrieves device details from the message.
+     *
+     * @param messageDetails Details of the message containing the device.
+     * @return Mono emitting the device details.
+     */
     private Mono<DeviceDetailsBoundary> validateAndGetDevice(Map<String, Object> messageDetails) {
         try {
             DeviceDetailsBoundary deviceDetailsBoundary = jackson.convertValue(messageDetails.get("device"), DeviceDetailsBoundary.class);

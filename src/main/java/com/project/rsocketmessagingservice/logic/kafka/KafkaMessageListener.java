@@ -18,6 +18,9 @@ import org.springframework.context.annotation.Configuration;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
+/**
+ * Configuration class for listening to Kafka messages and processing them.
+ */
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
@@ -29,12 +32,19 @@ public class KafkaMessageListener {
     private ObjectMapper objectMapper;
     private final WeatherService weatherService;
 
+    /**
+     * Initializes the ObjectMapper after construction.
+     */
     @PostConstruct
     public void init() {
         objectMapper = new ObjectMapper();
     }
 
-    // Listen to the Kafka topic and process the received message
+    /**
+     * Configures a Kafka consumer to listen to messages and process them.
+     *
+     * @return A consumer function for processing Kafka messages.
+     */
     @Bean
     public Consumer<String> demoMessageSink() {
         return message -> {
@@ -48,7 +58,11 @@ public class KafkaMessageListener {
         };
     }
 
-    // Validate the message received from Kafka
+    /**
+     * Validates the message received from Kafka.
+     *
+     * @param message The message to validate.
+     */
     private void validateMessage(MessageBoundary message) {
         if (message.getMessageDetails() == null
                 || !message.getMessageDetails().containsKey("device")
@@ -58,7 +72,11 @@ public class KafkaMessageListener {
         }
     }
 
-    // Process the weather message and create a new device event
+    /**
+     * Processes the weather message received from Kafka.
+     *
+     * @param message The weather message to process.
+     */
     private void processWeatherMessage(MessageBoundary message) {
         DeviceDetailsBoundary deviceDetails = objectMapper.convertValue(message.getMessageDetails().get("device"), DeviceDetailsBoundary.class);
         if (deviceDetails.isWeatherDevice()) {
@@ -85,7 +103,12 @@ public class KafkaMessageListener {
         }
     }
 
-    // Build a new message from the received message
+    /**
+     * Builds a new message from the received weather message.
+     *
+     * @param message The weather message received from Kafka.
+     * @return A new message boundary built from the received weather message.
+     */
     private NewMessageBoundary buildWeatherMessage(MessageBoundary message) {
         return NewMessageBoundary.builder()
                 .messageType(message.getMessageType())

@@ -18,16 +18,26 @@ import java.util.Map;
 import static com.project.rsocketmessagingservice.utils.OpenMeteoAPI.OptionsConstants.*;
 import static com.project.rsocketmessagingservice.utils.OpenMeteoAPI.ParamsConstants.*;
 
+/**
+ * Service implementation for interacting with the OpenMeteo external API.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class OpenMeteoService implements OpenMeteoExtAPI {
     private WebClient webClient;
 
+    /**
+     * Retrieves the weekly weather forecast for a specific location.
+     *
+     * @param days     Number of days for the forecast (between MIN_DAYS_OPT and MAX_DAYS_OPT).
+     * @param location Location for which the forecast is requested.
+     * @return Flux emitting maps containing weather forecast data.
+     */
     @Override
     public Flux<Map<String, Object>> getWeeklyForecast(int days, LocationBoundary location) {
         if (days < MIN_DAYS_OPT || days > MAX_DAYS_OPT) {
-            return Flux.error(new IllegalArgumentException("Number of days must be between %d and %d".formatted(MIN_DAYS_OPT,MAX_DAYS_OPT)));
+            return Flux.error(new IllegalArgumentException("Number of days must be between %d and %d".formatted(MIN_DAYS_OPT, MAX_DAYS_OPT)));
         }
 
         return webClient.get()
@@ -53,17 +63,28 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
                     Gson gson = new Gson();
                     JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
                     JsonObject dailyData = jsonResponse.getAsJsonObject(DAILY_PARAM);
-                    List<String> dates = gson.fromJson(gson.toJson(dailyData.get(TIME_OPT)), new TypeToken<List<String>>() {}.getType());
-                    List<Double> temperatureMaxList = gson.fromJson(gson.toJson(dailyData.get(TEMPERATURE_2_METERS_ABOVE_SURFACE_MAX_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> temperatureMinList = gson.fromJson(gson.toJson(dailyData.get(TEMPERATURE_2_METERS_ABOVE_SURFACE_MIN_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<String> sunriseList = gson.fromJson(gson.toJson(dailyData.get(SUNRISE_OPT)), new TypeToken<List<String>>() {}.getType());
-                    List<String> sunsetList = gson.fromJson(gson.toJson(dailyData.get(SUNSET_OPT)), new TypeToken<List<String>>() {}.getType());
-                    List<Double> daylightDurationList = gson.fromJson(gson.toJson(dailyData.get(DAYLIGHT_DURATION_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> sunshineDurationList = gson.fromJson(gson.toJson(dailyData.get(SUNSHINE_DURATION_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> rainSumList = gson.fromJson(gson.toJson(dailyData.get(RAIN_SUM_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> showersSumList = gson.fromJson(gson.toJson(dailyData.get(SHOWERS_SUM_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> snowfallSumList = gson.fromJson(gson.toJson(dailyData.get(SNOWFALL_SUM_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> windSpeedMaxList = gson.fromJson(gson.toJson(dailyData.get(WIND_SPEED_10_METERS_ABOVE_SURFACE_MAX_OPT)), new TypeToken<List<Double>>() {}.getType());
+                    List<String> dates = gson.fromJson(gson.toJson(dailyData.get(TIME_OPT)), new TypeToken<List<String>>() {
+                    }.getType());
+                    List<Double> temperatureMaxList = gson.fromJson(gson.toJson(dailyData.get(TEMPERATURE_2_METERS_ABOVE_SURFACE_MAX_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> temperatureMinList = gson.fromJson(gson.toJson(dailyData.get(TEMPERATURE_2_METERS_ABOVE_SURFACE_MIN_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<String> sunriseList = gson.fromJson(gson.toJson(dailyData.get(SUNRISE_OPT)), new TypeToken<List<String>>() {
+                    }.getType());
+                    List<String> sunsetList = gson.fromJson(gson.toJson(dailyData.get(SUNSET_OPT)), new TypeToken<List<String>>() {
+                    }.getType());
+                    List<Double> daylightDurationList = gson.fromJson(gson.toJson(dailyData.get(DAYLIGHT_DURATION_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> sunshineDurationList = gson.fromJson(gson.toJson(dailyData.get(SUNSHINE_DURATION_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> rainSumList = gson.fromJson(gson.toJson(dailyData.get(RAIN_SUM_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> showersSumList = gson.fromJson(gson.toJson(dailyData.get(SHOWERS_SUM_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> snowfallSumList = gson.fromJson(gson.toJson(dailyData.get(SNOWFALL_SUM_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> windSpeedMaxList = gson.fromJson(gson.toJson(dailyData.get(WIND_SPEED_10_METERS_ABOVE_SURFACE_MAX_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
 
                     return Flux.range(0, dates.size())
                             .map(index -> {
@@ -84,6 +105,13 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
                 });
     }
 
+    /**
+     * Retrieves the daily weather recommendation for a specific location.
+     *
+     * @param location Location for which the recommendation is requested.
+     * @param hours    Number of hours for the forecast (between MIN_HOURS_OPT and MAX_HOURS_OPT).
+     * @return Flux emitting maps containing weather recommendation data.
+     */
     @Override
     public Flux<Map<String, Object>> getDailyRecommendation(LocationBoundary location, int hours) {
         if (hours < MIN_HOURS_OPT || hours > MAX_HOURS_OPT) {
@@ -110,14 +138,22 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
                     JsonObject jsonResponse = gson.fromJson(response, JsonObject.class);
 
                     JsonObject hourlyData = jsonResponse.getAsJsonObject(HOURLY_PARAM);
-                    List<String> dates = gson.fromJson(gson.toJson(hourlyData.get(TIME_OPT)), new TypeToken<List<String>>() {}.getType());
-                    List<Double> temperatureList = gson.fromJson(gson.toJson(hourlyData.get(TEMPERATURE_2_METERS_ABOVE_SURFACE_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> humidityList = gson.fromJson(gson.toJson(hourlyData.get(RELATIVE_HUMIDITY_2_METERS_ABOVE_SURFACE_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<String> rainList = gson.fromJson(gson.toJson(hourlyData.get(RAIN_OPT)), new TypeToken<List<String>>() {}.getType());
-                    List<String> cloudList = gson.fromJson(gson.toJson(hourlyData.get(CLOUD_COVER_OPT)), new TypeToken<List<String>>() {}.getType());
-                    List<Double> windSpeedList = gson.fromJson(gson.toJson(hourlyData.get(WIND_SPEED_10_METERS_ABOVE_SURFACE_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> soilTempList = gson.fromJson(gson.toJson(hourlyData.get(SOIL_TEMPERATURE_0_CENTIMETERS_ABOVE_SURFACE_OPT)), new TypeToken<List<Double>>() {}.getType());
-                    List<Double> isDayList = gson.fromJson(gson.toJson(hourlyData.get(IS_DAY_OPT)), new TypeToken<List<Double>>() {}.getType());
+                    List<String> dates = gson.fromJson(gson.toJson(hourlyData.get(TIME_OPT)), new TypeToken<List<String>>() {
+                    }.getType());
+                    List<Double> temperatureList = gson.fromJson(gson.toJson(hourlyData.get(TEMPERATURE_2_METERS_ABOVE_SURFACE_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> humidityList = gson.fromJson(gson.toJson(hourlyData.get(RELATIVE_HUMIDITY_2_METERS_ABOVE_SURFACE_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<String> rainList = gson.fromJson(gson.toJson(hourlyData.get(RAIN_OPT)), new TypeToken<List<String>>() {
+                    }.getType());
+                    List<String> cloudList = gson.fromJson(gson.toJson(hourlyData.get(CLOUD_COVER_OPT)), new TypeToken<List<String>>() {
+                    }.getType());
+                    List<Double> windSpeedList = gson.fromJson(gson.toJson(hourlyData.get(WIND_SPEED_10_METERS_ABOVE_SURFACE_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> soilTempList = gson.fromJson(gson.toJson(hourlyData.get(SOIL_TEMPERATURE_0_CENTIMETERS_ABOVE_SURFACE_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
+                    List<Double> isDayList = gson.fromJson(gson.toJson(hourlyData.get(IS_DAY_OPT)), new TypeToken<List<Double>>() {
+                    }.getType());
 
                     return Flux.range(0, dates.size())
                             .map(index -> {
@@ -135,6 +171,11 @@ public class OpenMeteoService implements OpenMeteoExtAPI {
                 });
     }
 
+    /**
+     * Sets the base URL for the OpenMeteo API.
+     *
+     * @param remoteUrl Base URL for the OpenMeteo API.
+     */
     @Value("${openmeteo.api.baseForecastUrl}")
     public void setRemoteUrl(String remoteUrl) {
         this.webClient = WebClient

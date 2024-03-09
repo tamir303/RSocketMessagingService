@@ -15,11 +15,20 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Implementation of the MessageService interface.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MessageServiceImpl implements MessageService {
     private final MessageCrud messageCrud;
+
+    /**
+     * Creates a new message.
+     * @param message The new message to create.
+     * @return A Mono containing the created message.
+     */
     @Override
     public Mono<MessageBoundary> createMessage(NewMessageBoundary message) {
         MessageBoundary messageBoundary = new MessageBoundary(message);
@@ -32,6 +41,10 @@ public class MessageServiceImpl implements MessageService {
                 .log();
     }
 
+    /**
+     * Retrieves all messages.
+     * @return A Flux emitting all messages.
+     */
     @Override
     public Flux<MessageBoundary> getAll() {
         return messageCrud
@@ -40,6 +53,11 @@ public class MessageServiceImpl implements MessageService {
                 .log();
     }
 
+    /**
+     * Retrieves messages by their IDs.
+     * @param ids A Flux of IDs.
+     * @return A Flux emitting messages matching the provided IDs.
+     */
     @Override
     public Flux<MessageBoundary> getMessagesByIds(Flux<IdBoundary> ids) {
         return ids.flatMap(id -> messageCrud.findById(id.getMessageId()))
@@ -48,6 +66,10 @@ public class MessageServiceImpl implements MessageService {
 
     }
 
+    /**
+     * Deletes all messages.
+     * @return A Mono representing the completion of the deletion operation.
+     */
     @Override
     public Mono<Void> deleteAll() {
         return messageCrud
@@ -55,6 +77,11 @@ public class MessageServiceImpl implements MessageService {
                 .log();
     }
 
+    /**
+     * Retrieves messages by their external references.
+     * @param externalReferences A Flux of external references.
+     * @return A Flux emitting messages with external references matching the provided ones.
+     */
     @Override
     public Flux<MessageBoundary> getMessagesByExternalReferences(Flux<ExternalReferenceBoundary> externalReferences) {
         return externalReferences
