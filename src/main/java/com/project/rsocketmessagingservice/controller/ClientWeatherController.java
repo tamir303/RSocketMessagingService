@@ -12,46 +12,75 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * Controller class to handle weather-related operations.
+ */
 @RestController
 @RequestMapping(path = "/rsocket/weather")
 public class ClientWeatherController {
+
     private RSocketRequester requester;
     private RSocketRequester.Builder requesterBuilder;
     private String rsocketHost;
     private int rsocketPort;
 
+    /**
+     * Sets the RSocket requester builder.
+     * @param requesterBuilder The RSocket requester builder.
+     */
     @Autowired
     public void setRequesterBuilder(RSocketRequester.Builder requesterBuilder) {
         this.requesterBuilder = requesterBuilder;
     }
 
+    /**
+     * Sets the RSocket server host.
+     * @param rsocketHost The RSocket server host.
+     */
     @Value("${demoapp.client.rsocket.host:127.0.0.1}")
     public void setRsocketHost(String rsocketHost) {
         this.rsocketHost = rsocketHost;
     }
 
+    /**
+     * Sets the RSocket server port.
+     * @param rsocketPort The RSocket server port.
+     */
     @Value("${demoapp.client.rsocket.port:7000}")
     public void setRsocketPort(int rsocketPort) {
         this.rsocketPort = rsocketPort;
     }
 
+    /**
+     * Initializes the RSocket requester upon bean construction.
+     */
     @PostConstruct
     public void init() {
         this.requester = this.requesterBuilder
                 .tcp(rsocketHost, rsocketPort);
     }
 
+    /**
+     * Creates a new weather machine.
+     * @param message The message containing information about the new weather machine.
+     * @return A Mono emitting the created weather machine message boundary.
+     */
     @PostMapping(
             path = "/create",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public Mono<MessageBoundary> createWeatherMachine(@RequestBody NewMessageBoundary message) {
         return this.requester.route("attach-new-weather-machine")
-                    .data(message)
-                    .retrieveMono(MessageBoundary.class)
-                    .log();
+                .data(message)
+                .retrieveMono(MessageBoundary.class)
+                .log();
     }
 
+    /**
+     * Removes a weather machine.
+     * @param message The message containing information about the weather machine to remove.
+     * @return A Mono indicating the completion of the removal operation.
+     */
     @DeleteMapping(path = {"/remove"}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     public Mono<Void> removeWeatherMachine(@RequestBody MessageBoundary message) {
         return this.requester.route("remove-weather-machine")
@@ -60,6 +89,10 @@ public class ClientWeatherController {
                 .log();
     }
 
+    /**
+     * Removes all weather machines.
+     * @return A Mono indicating the completion of the removal operation.
+     */
     @DeleteMapping("/remove/all")
     public Mono<Void> removeAllWeatherMachines() {
         return this.requester.route("remove-all-weather-machines")
@@ -67,6 +100,11 @@ public class ClientWeatherController {
                 .log();
     }
 
+    /**
+     * Updates a weather machine.
+     * @param message The message containing information about the weather machine to update.
+     * @return A Mono indicating the completion of the update operation.
+     */
     @PutMapping("/update")
     public Mono<Void> updateWeatherMachine(@RequestBody MessageBoundary message) {
         return this.requester.route("update-weather-machine")
@@ -75,6 +113,10 @@ public class ClientWeatherController {
                 .log();
     }
 
+    /**
+     * Retrieves all weather machines.
+     * @return A Flux emitting all weather machine message boundaries.
+     */
     @GetMapping(
             path = {"/all"},
             produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -84,6 +126,11 @@ public class ClientWeatherController {
                 .log();
     }
 
+    /**
+     * Retrieves a weather machine by its ID.
+     * @param id The ID of the weather machine.
+     * @return A Mono emitting the weather machine message boundary.
+     */
     @GetMapping(
             path = {"/device"},
             produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -94,6 +141,11 @@ public class ClientWeatherController {
                 .log();
     }
 
+    /**
+     * Retrieves weather forecast.
+     * @param message The message containing information about the weather forecast request.
+     * @return A Flux emitting weather forecast message boundaries.
+     */
     @PostMapping(
             path = "/forecast",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
@@ -105,6 +157,10 @@ public class ClientWeatherController {
                 .log();
     }
 
+    /**
+     * Retrieves weather recommendations.
+     * @return A Mono emitting weather recommendation message boundary.
+     */
     @GetMapping("/recommendations")
     public Mono<MessageBoundary> getWeatherRecommendations() {
         return this.requester.route("get-weather-recommendations")

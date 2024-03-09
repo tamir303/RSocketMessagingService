@@ -12,17 +12,31 @@ import reactor.core.publisher.Flux;
 
 import java.util.Map;
 
+/**
+ * Controller class to handle OpenMeteo API operations.
+ */
 @RestController
 @RequestMapping(path = "/openmeteo")
 public class ClientOpenMeteoController {
 
     private final OpenMeteoExtAPI openMeteoService;
 
+    /**
+     * Constructs a ClientOpenMeteoController with the provided OpenMeteoExtAPI instance.
+     * @param openMeteoService The OpenMeteoExtAPI instance.
+     */
     @Autowired
     public ClientOpenMeteoController(OpenMeteoExtAPI openMeteoService) {
         this.openMeteoService = openMeteoService;
     }
 
+    /**
+     * Retrieves weekly forecast from OpenMeteo API.
+     * @param days The number of days for the forecast.
+     * @param latitude The latitude coordinate for the location.
+     * @param longitude The longitude coordinate for the location.
+     * @return A Flux emitting the weekly forecast data.
+     */
     @GetMapping(
             path = {"/weekly-forecast"},
             produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
@@ -32,6 +46,13 @@ public class ClientOpenMeteoController {
         return openMeteoService.getWeeklyForecast(days, new LocationBoundary(latitude, longitude));
     }
 
+    /**
+     * Retrieves daily recommendation from OpenMeteo API.
+     * @param latitude The latitude coordinate for the location.
+     * @param longitude The longitude coordinate for the location.
+     * @param hours The number of hours for the recommendation.
+     * @return A Flux emitting the daily recommendation data.
+     */
     @GetMapping(
             path = {"/daily-recommendation"},
             produces = {MediaType.TEXT_EVENT_STREAM_VALUE})
