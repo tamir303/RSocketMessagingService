@@ -9,11 +9,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Entity class representing a message in the MongoDB database.
+ */
 @Document(collection = "messages")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageEntity {
+
     @Id
     private String messageId;
     private String publishedTimestamp;

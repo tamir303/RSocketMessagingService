@@ -8,20 +8,28 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Map;
 
+/**
+ * Entity class representing a device in the MongoDB database.
+ */
 @Document(collection = "devices")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class DeviceEntity {
-    @Id
-    String id;
-    String type;
-    String subType;
-    String registrationTimestamp;
-    String lastUpdateTimestamp;
-    Boolean isOn;
-    Map<String, Object> additionalAttributes;
 
+    @Id
+    private String id;
+    private String type;
+    private String subType;
+    private String registrationTimestamp;
+    private String lastUpdateTimestamp;
+    private Boolean isOn;
+    private Map<String, Object> additionalAttributes;
+
+    /**
+     * Converts the device entity to a map representation.
+     * @return A map containing device attributes.
+     */
     public Map<String, Object> toMap() {
         return Map.of(
                 "id", this.id,
