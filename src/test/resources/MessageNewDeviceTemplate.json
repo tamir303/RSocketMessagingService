@@ -21,7 +21,11 @@
       "status": {
         "isOn": true,
         "brightness": 1,
-        "colorRGB": [1, 1, 1],
+        "colorRGB": [
+          1,
+          1,
+          1
+        ],
         "currentPowerInWatts": 1
       },
       "additionalAttributes": {
