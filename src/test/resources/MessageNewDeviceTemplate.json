@@ -1,0 +1,36 @@
+{
+  "messageId": "string",
+  "publishedTimestamp": "datetime",
+  "messageType": "string",
+  "summary": "string",
+  "externalReferences": [
+    {
+      "service": "string",
+      "externalServiceId": "string"
+    }
+  ],
+  "messageDetails": {
+    "device": {
+      "id": "string",
+      "type": "Weather",
+      "subType": "string",
+      "registrationTimestamp": "datetime",
+      "lastUpdateTimestamp": "datetime",
+      "location": "string",
+      "manufacturerPowerInWatts": 1,
+      "status": {
+        "isOn": true,
+        "brightness": 1,
+        "colorRGB": [1, 1, 1],
+        "currentPowerInWatts": 1
+      },
+      "additionalAttributes": {
+        "days": 3,
+        "location": {
+          "latitude": 30,
+          "longitude": 31
+        }
+      }
+    }
+  }
+}
