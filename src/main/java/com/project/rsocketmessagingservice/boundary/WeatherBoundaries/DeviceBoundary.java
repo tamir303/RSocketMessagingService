@@ -1,13 +1,19 @@
 package com.project.rsocketmessagingservice.boundary.WeatherBoundaries;
 
-import com.project.rsocketmessagingservice.data.DeviceEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents a boundary object for device information.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class DeviceBoundary {
-    DeviceDetailsBoundary device;
+
+    /**
+     * The device details boundary object.
+     */
+    private DeviceDetailsBoundary device;
 }
