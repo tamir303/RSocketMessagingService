@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * Entity class representing a message in the MongoDB database.
  */
-@Document(collection = "messages")
+@Document(collection = "weatherMessages")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
