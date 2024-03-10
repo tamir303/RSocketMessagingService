@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Entity class representing a device in the MongoDB database.
  */
-@Document(collection = "devices")
+@Document(collection = "weatherDevices")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
